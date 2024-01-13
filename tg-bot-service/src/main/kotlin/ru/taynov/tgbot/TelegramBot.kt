@@ -6,11 +6,15 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod
+import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 import ru.taynov.tgbot.config.BotConfig
+import java.util.*
+import java.util.concurrent.LinkedBlockingQueue
+
 
 @Component
 class TelegramBot(
@@ -19,6 +23,9 @@ class TelegramBot(
     config.token
 ) {
     private val log = KotlinLogging.logger {}
+
+    val sendQueue: Queue<BotApiMethod<*>> = LinkedBlockingQueue()
+    val receiveQueue: Queue<Update> = LinkedBlockingQueue()
 
     @EventListener(*[ContextRefreshedEvent::class])
     fun init() {
@@ -35,13 +42,7 @@ class TelegramBot(
     }
 
     override fun onUpdateReceived(update: Update) {
-        log.info("new update")
-        if (update.hasMessage()) {
-            val chatId = update.message.chatId.toString()
-            val username = update.message.chat.userName
-            val message = update.message.text
-            execute(SendMessage(chatId, "echo: $message"))
-            log.info("New message from $username: $message")
-        }
+        log.debug("Received update. updateID: " + update.updateId)
+        receiveQueue.add(update)
     }
 }
