@@ -1,4 +1,4 @@
-package ru.taynov.tgbot.enums
+package ru.taynov.tgbot.state
 
 enum class State {
     NONE,

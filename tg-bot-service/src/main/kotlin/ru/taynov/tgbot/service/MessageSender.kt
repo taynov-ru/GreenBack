@@ -29,9 +29,9 @@ class MessageSender(
     val globalScopeReporter = GlobalScope.launch {
         while (true) {
             try {
-                val message = bot.sendQueue.poll() ?: continue
-                log.debug("Get new msg to send {}", message)
-                send(message)
+                val method = bot.sendQueue.poll() ?: continue
+                log.debug("Get new msg to send {}", method)
+                send(method)
             } catch (e: Exception) {
                 log.error(e) {}
             }
@@ -39,16 +39,15 @@ class MessageSender(
         }
     }
 
-    private fun send(message: Any) {
-        val messageType = messageType(message)
-        when (messageType) {
+    private fun send(method: Any) {
+        when (messageType(method)) {
             MessageType.EXECUTE -> {
-                val message: BotApiMethod<Message> = message as BotApiMethod<Message>
+                val message: BotApiMethod<Message> = method as BotApiMethod<Message>
                 log.debug("Use Execute for {}", message)
                 bot.execute(message)
             }
 
-            else -> log.warn("Cant detect type of object. $message")
+            else -> log.warn("Cant detect type of object. $method")
         }
     }
 
