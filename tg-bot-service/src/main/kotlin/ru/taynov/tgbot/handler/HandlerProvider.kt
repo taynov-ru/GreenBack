@@ -4,15 +4,14 @@ import mu.KotlinLogging
 import org.springframework.stereotype.Component
 import ru.taynov.tgbot.callback.Callback
 import ru.taynov.tgbot.command.Command
-import ru.taynov.tgbot.enums.State
-import ru.taynov.tgbot.service.UserService
+import ru.taynov.tgbot.state.ExtendedState
+import ru.taynov.tgbot.state.State
 
 @Component
 class HandlerProvider(
     private val defaultHandler: DefaultHandler,
     private val devicesHandler: DevicesHandler,
     private val systemHandler: SystemHandler,
-    private val userService: UserService,
     private val controlHandler: ControlHandler,
 ) {
     private val log = KotlinLogging.logger {}
@@ -58,7 +57,7 @@ class HandlerProvider(
                 devicesHandler
             }
 
-            Callback.CHANGE_PARAMETER -> {
+            Callback.CHANGE_PARAMETER, Callback.TO_SETTINGS -> {
                 log.info("Handler for callback[$callback] is $controlHandler")
                 controlHandler
             }
@@ -70,8 +69,8 @@ class HandlerProvider(
         }
     }
 
-    fun handlerByState(chatId: String): MessageHandler {
-        return when (userService.getState(chatId)) {
+    fun handlerByState(extendedState: ExtendedState): MessageHandler {
+        return when (extendedState.state) {
             State.NONE -> defaultHandler
             State.CHANGE_INT_PARAMETER -> controlHandler
             State.ADD_DEVICE_ENTER_ID, State.ADD_DEVICE_ENTER_NAME -> devicesHandler

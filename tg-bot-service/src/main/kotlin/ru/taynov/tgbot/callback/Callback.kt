@@ -7,4 +7,5 @@ enum class Callback {
     DELETE_DEVICE,
     UNKNOWN,
     CHANGE_PARAMETER,
+    TO_SETTINGS,
 }

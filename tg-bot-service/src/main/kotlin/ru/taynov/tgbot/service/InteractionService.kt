@@ -7,6 +7,7 @@ import ru.taynov.esp.model.Param
 import ru.taynov.esp.service.EspInteractionService
 import ru.taynov.tgbot.dto.InfoCardDto
 import ru.taynov.tgbot.dto.InfoCardDto.Companion.toInfoCardDto
+import ru.taynov.tgbot.enums.ModuleError
 
 @Service
 class InteractionService(
@@ -17,8 +18,9 @@ class InteractionService(
         service.sendMessage(device, message)
     }
 
-    fun getParameterValue(deviceId: String, param: ParamName): Int? {
+    fun getParameterValue(deviceId: String, param: ParamName): Int {
         return service.getLast(deviceId)?.params?.first { it.name == param }?.value
+            ?: throw ModuleError.PARAMETER_NOT_FOUND.getException()
     }
 
     fun getLast(device: String): InfoCardDto {

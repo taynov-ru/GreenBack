@@ -7,8 +7,8 @@ import javax.persistence.Id
 import javax.persistence.Table
 
 @Entity
-@Table(name = "user_esp_data")
-open class UserEspDataEntity(
+@Table(name = "device_info")
+open class DeviceInfoEntity(
     @Id @GeneratedValue
     val id: Long? = null,
     var name: String? = null,

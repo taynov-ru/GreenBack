@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service
 import ru.taynov.tgbot.dto.DeviceDto
 import ru.taynov.tgbot.dto.toDeviceDto
 import ru.taynov.tgbot.entity.DeviceUserAssignmentEntity
-import ru.taynov.tgbot.entity.UserEspDataEntity
+import ru.taynov.tgbot.entity.DeviceInfoEntity
 import ru.taynov.tgbot.entity.UserStateEntity
 import ru.taynov.tgbot.enums.ModuleError
 import ru.taynov.tgbot.repository.DeviceAssignmentRepository
@@ -18,6 +18,7 @@ class DeviceService(
     private val userStateRepository: UserStateRepository,
     private val deviceAssignmentRepository: DeviceAssignmentRepository,
 ) {
+
     fun getDevicesByChatId(chatId: String): List<DeviceDto> {
         return repository.findAllByUserId(chatId.toLong()).map { it.toDeviceDto() }
     }
@@ -34,7 +35,7 @@ class DeviceService(
     }
 
     fun createDevice(chatId: String, deviceId: String) {
-        val device = UserEspDataEntity(userId = chatId.toLong(), deviceId = deviceId)
+        val device = DeviceInfoEntity(userId = chatId.toLong(), deviceId = deviceId)
         repository.save(device)
         saveDeviceAssignment(chatId, deviceId)
         userStateRepository.findById(chatId.toLong()).get().also {

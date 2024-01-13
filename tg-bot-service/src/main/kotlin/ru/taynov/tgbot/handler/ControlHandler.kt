@@ -1,6 +1,7 @@
 package ru.taynov.tgbot.handler
 
 import org.springframework.stereotype.Component
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Message
@@ -16,11 +17,13 @@ import ru.taynov.tgbot.dto.InfoCardDto
 import ru.taynov.tgbot.dto.OperateResultDto
 import ru.taynov.tgbot.dto.toOperateResult
 import ru.taynov.tgbot.enums.ModuleError
-import ru.taynov.tgbot.enums.State
 import ru.taynov.tgbot.service.DeviceService
 import ru.taynov.tgbot.service.InteractionService
 import ru.taynov.tgbot.service.UpdateParameterService
 import ru.taynov.tgbot.service.UserService
+import ru.taynov.tgbot.state.ExtendedState
+import ru.taynov.tgbot.state.State
+import java.io.Serializable
 
 @Component
 class ControlHandler(
@@ -31,10 +34,8 @@ class ControlHandler(
 ) : MessageHandler {
     override fun operateCommand(chatId: String, parsedCommand: ParsedCommand, message: Message): OperateResultDto? {
         return when (parsedCommand.command) {
-            Command.INFO -> getInfo(chatId)
-            Command.SETTINGS -> getSettings(chatId)
-
-            Command.NONE -> operateMessage(chatId, parsedCommand.payload, message)
+            Command.INFO -> getInfo(chatId).toOperateResult()
+            Command.SETTINGS -> getSettings(chatId).toOperateResult()
             else -> null
         }
     }
@@ -42,20 +43,34 @@ class ControlHandler(
     override fun operateCallback(chatId: String, parsedCallback: ParsedCallback, message: Message): OperateResultDto? {
         return when (parsedCallback.callback) {
             Callback.CHANGE_PARAMETER -> changeParameter(chatId, parsedCallback.payload, message)
+            Callback.TO_SETTINGS -> getSettings(chatId)
             else -> null
+        }?.toOperateResult()
+    }
+
+    override fun operateMessage(chatId: String, extendedState: ExtendedState, message: Message): OperateResultDto? {
+        return when (extendedState.state) {
+            State.CHANGE_INT_PARAMETER -> changeIntParameter(chatId, extendedState.payload, message.text)
+
+            else -> null
+        }?.toOperateResult()
+    }
+
+    private fun changeIntParameter(chatId: String, payload: String?, text: String): SendMessage {
+        val deviceId =
+            userService.getUser(chatId).selectedDevice ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
+        val param = payload?.let { ParamName.valueOf(it) } ?: throw ModuleError.PARAMETER_NOT_FOUND.getException()
+        val value = runCatching { text.toInt() }.getOrNull() ?: throw ModuleError.VALUE_INCORRECT.getException()
+        updateParameterService.setIntParameter(deviceId, param, value)
+        userService.setState(chatId, State.NONE)
+        return SendMessage().apply {
+            this.chatId = chatId
+            this.text = "Значение установлено ✅"
+            this.replyMarkup = buildToSettingsButton()
         }
     }
 
-    private fun operateMessage(chatId: String, text: String, message: Message): OperateResultDto? {
-        val user = userService.getUser(chatId)
-        return when (user.state) {
-            State.CHANGE_INT_PARAMETER -> null
-
-            else -> null
-        }
-    }
-
-    private fun getSettings(chatId: String): OperateResultDto {
+    private fun getSettings(chatId: String): SendMessage {
         val deviceId =
             userService.getUser(chatId).selectedDevice ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
         val data = interactionService.getLast(deviceId)
@@ -64,44 +79,68 @@ class ControlHandler(
             this.chatId = chatId
             this.text = "Настройка параметров 🔧"
             this.replyMarkup = buildSettingsKeyboard(data.params)
-        }.toOperateResult()
+        }
     }
 
-    private fun getInfo(chatId: String): OperateResultDto {
+    private fun getInfo(chatId: String): SendMessage {
         val deviceId =
             userService.getUser(chatId).selectedDevice ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
         val data = interactionService.getLast(deviceId)
         val deviceName =
-            deviceService.getDeviceByChatId(chatId, deviceId)?.name ?: throw ModuleError.UNKNOWN_DEVICE.getException()
-        return buildInfoMessage(chatId, data, deviceName, data).toOperateResult()
+            deviceService.getDeviceByChatId(chatId, deviceId)?.name
+                ?: throw ModuleError.UNKNOWN_DEVICE.getException()
+        return buildInfoMessage(chatId, data, deviceName, data)
     }
 
-    private fun changeParameter(chatId: String, payload: String, message: Message): OperateResultDto? {
+    private fun changeParameter(
+        chatId: String,
+        payload: String,
+        message: Message
+    ): BotApiMethod<out Serializable>? {
         val parameter = runCatching { ParamName.valueOf(payload) }.getOrNull() ?: return null
-        val deviceId =
-            userService.getUser(chatId).selectedDevice ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
+        val deviceId = userService.getUser(chatId).selectedDevice
+            ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
+
+        if (parameter.type == Int::class) {
+            return setStateChangeIntParameter(chatId, parameter)
+        }
+
         if (parameter.type == Boolean::class) {
             updateParameterService.inverseBooleanParameter(deviceId, parameter)
         }
-        if (parameter.type == Int::class) {
-            userService.setState(chatId, State.CHANGE_INT_PARAMETER)
-            return SendMessage().apply {
-                this.chatId = chatId
-                this.text = "Введи целое число для параметра: ${parameter.value}"
-            }.toOperateResult()
-        }
 
+        return editKeyboardMessageAfterChangeParameter(chatId, message)
+    }
+
+    private fun editKeyboardMessageAfterChangeParameter(chatId: String, message: Message): EditMessageText {
         val prevMessage = if (message.text.contains("Настройка"))
-            getSettings(chatId).result as SendMessage
+            getSettings(chatId)
         else
-            getInfo(chatId).result as SendMessage
+            getInfo(chatId)
 
         return EditMessageText().apply {
             this.chatId = chatId
             this.messageId = message.messageId
             this.text = prevMessage.text
             this.replyMarkup = prevMessage.replyMarkup as InlineKeyboardMarkup
-        }.toOperateResult()
+        }
+    }
+
+    private fun setStateChangeIntParameter(chatId: String, parameter: ParamName): SendMessage {
+        val deviceId = userService.getUser(chatId).selectedDevice
+            ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
+        val parameterValue = interactionService.getParameterValue(deviceId, parameter)
+
+        userService.setState(chatId, ExtendedState(State.CHANGE_INT_PARAMETER, parameter.name))
+        return SendMessage().apply {
+            this.chatId = chatId
+            this.text = """
+                Текущее значение параметра: ${parameter.value}
+                $parameterValue
+                
+                Введи целое число
+                """.trimIndent()
+        }
     }
 
     private fun buildInfoMessage(
@@ -161,9 +200,21 @@ class ControlHandler(
             })
     }
 
+    private fun buildToSettingsButton(): InlineKeyboardMarkup {
+        return InlineKeyboardMarkup().apply {
+            keyboard = listOf(listOf(InlineKeyboardButton().apply {
+                this.text = "К настройкам"
+                this.callbackData = ParsedCallback(Callback.TO_SETTINGS).toString()
+            }))
+        }
+    }
+
     private fun getText(param: Param): String {
         if (param.name.type == Boolean::class) {
             return (if (param.value == 0) "Включить" else "Выключить") + " " + param.name.value.lowercase()
+        }
+        if (param.name.type == Int::class) {
+            return param.name.value + " " + param.value
         }
         return param.name.value
     }

@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree.Companion.test
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {

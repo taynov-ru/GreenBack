@@ -6,16 +6,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KLogger
 import mu.KotlinLogging
-import org.springframework.core.task.TaskExecutor
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Controller
-import org.springframework.stereotype.Indexed
-import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker
 import org.telegram.telegrambots.meta.api.objects.Message
 import ru.taynov.tgbot.TelegramBot
-import javax.annotation.PostConstruct
 
 @Controller
 class MessageSender(
@@ -29,9 +24,9 @@ class MessageSender(
     val globalScopeReporter = GlobalScope.launch {
         while (true) {
             try {
-                val message = bot.sendQueue.poll() ?: continue
-                log.debug("Get new msg to send {}", message)
-                send(message)
+                val method = bot.sendQueue.poll() ?: continue
+                log.debug("Get new msg to send {}", method)
+                send(method)
             } catch (e: Exception) {
                 log.error(e) {}
             }
@@ -39,16 +34,15 @@ class MessageSender(
         }
     }
 
-    private fun send(message: Any) {
-        val messageType = messageType(message)
-        when (messageType) {
+    private fun send(method: Any) {
+        when (messageType(method)) {
             MessageType.EXECUTE -> {
-                val message: BotApiMethod<Message> = message as BotApiMethod<Message>
+                val message: BotApiMethod<Message> = method as BotApiMethod<Message>
                 log.debug("Use Execute for {}", message)
                 bot.execute(message)
             }
 
-            else -> log.warn("Cant detect type of object. $message")
+            else -> log.warn("Cant detect type of object. $method")
         }
     }
 
@@ -63,7 +57,4 @@ class MessageSender(
         NOT_DETECTED
     }
 
-    companion object {
-        private const val SENDER_SLEEP_TIME = 100
-    }
 }

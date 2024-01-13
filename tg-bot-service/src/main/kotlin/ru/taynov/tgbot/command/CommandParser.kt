@@ -38,14 +38,12 @@ class CommandParser(private val botConfig: BotConfig) {
 
     private fun getCommandFromText(text: String): Command {
         val upperCaseText = text.uppercase(Locale.getDefault()).trim { it <= ' ' }
-        var command: Command = Command.NONE
-        try {
-            command = Command.valueOf(upperCaseText)
+        return try {
+            Command.valueOf(upperCaseText)
         } catch (e: IllegalArgumentException) {
-            command = Command.UNKNOWN
             log.debug("Can't parse command: $text")
+            Command.UNKNOWN
         }
-        return command
     }
 
     private fun getDelimitedCommandFromText(trimText: String): Pair<String, String> {

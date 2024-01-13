@@ -7,7 +7,7 @@ import ru.taynov.tgbot.command.Command
 import ru.taynov.tgbot.command.ParsedCommand
 import ru.taynov.tgbot.dto.OperateResultDto
 import ru.taynov.tgbot.dto.toOperateResult
-import ru.taynov.tgbot.enums.State
+import ru.taynov.tgbot.state.State
 import ru.taynov.tgbot.service.UserService
 
 @Component

@@ -12,9 +12,10 @@ import ru.taynov.tgbot.command.ParsedCommand
 import ru.taynov.tgbot.dto.DeviceDto
 import ru.taynov.tgbot.dto.OperateResultDto
 import ru.taynov.tgbot.dto.toOperateResult
-import ru.taynov.tgbot.enums.State
+import ru.taynov.tgbot.state.State
 import ru.taynov.tgbot.service.DeviceService
 import ru.taynov.tgbot.service.UserService
+import ru.taynov.tgbot.state.ExtendedState
 import ru.taynov.tgbot.validator.DeviceValidator
 
 @Component
@@ -27,7 +28,6 @@ class DevicesHandler(
     override fun operateCommand(chatId: String, parsedCommand: ParsedCommand, message: Message): OperateResultDto? {
         return when (parsedCommand.command) {
             Command.DEVICES -> getDevices(chatId)
-            Command.NONE -> operateMessage(chatId, parsedCommand.payload, message)
             else -> null
         }?.toOperateResult()
     }
@@ -42,14 +42,12 @@ class DevicesHandler(
         }?.toOperateResult()
     }
 
-    private fun operateMessage(chatId: String, text: String, message: Message): SendMessage? {
-        val user = userService.getUser(chatId)
-        return when (user.state) {
-            State.ADD_DEVICE_ENTER_ID -> enterDeviceId(chatId, text)
-            State.ADD_DEVICE_ENTER_NAME -> enterDeviceName(chatId, text)
-
+    override fun operateMessage(chatId: String, extendedState: ExtendedState, message: Message): OperateResultDto? {
+        return when (extendedState.state) {
+            State.ADD_DEVICE_ENTER_ID -> enterDeviceId(chatId, message.text)
+            State.ADD_DEVICE_ENTER_NAME -> enterDeviceName(chatId, message.text)
             else -> null
-        }
+        }?.toOperateResult()
     }
 
     private fun editDeviceName(chatId: String): SendMessage {
