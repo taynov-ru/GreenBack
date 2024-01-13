@@ -1,7 +1,6 @@
 package ru.taynov.tgbot.enums
 
 enum class ModuleError(val text: String) {
-    NOT_FOUND("Не найдено"),
     INTERNAL_ERROR("Ошибка сервера"),
     BEFORE_SELECT_DEVICE("Сначала выбери устройство"),
     PARAMETER_NOT_FOUND("Параметр не найден"),

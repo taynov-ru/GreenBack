@@ -42,13 +42,13 @@ class UpdateParameterService(
     }
 
     private fun shouldLowerThan(newValue: Int, comparableParameter: ParamName, currentParameters: List<Param>) {
-        if (currentParameters.getParameterValue(comparableParameter)?.let { newValue < it } != false)
-            throw ModuleError.VALUE_INCORRECT.getException("Значение должно быть меньше значения ${comparableParameter.value}")
+        if (currentParameters.getParameterValue(comparableParameter)?.let { newValue >= it } != false)
+            throw ModuleError.VALUE_INCORRECT.getException("Значение должно быть меньше значения \"${comparableParameter.value}\"")
     }
 
     private fun shouldGreaterThan(newValue: Int, comparableParameter: ParamName, currentParameters: List<Param>) {
-        if (currentParameters.getParameterValue(comparableParameter)?.let { newValue > it } != false)
-            throw ModuleError.VALUE_INCORRECT.getException("Значение должно быть больше значения ${comparableParameter.value}")
+        if (currentParameters.getParameterValue(comparableParameter)?.let { newValue <= it } != false)
+            throw ModuleError.VALUE_INCORRECT.getException("Значение должно быть больше значения \"${comparableParameter.value}\"")
 
     }
 

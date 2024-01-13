@@ -6,16 +6,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KLogger
 import mu.KotlinLogging
-import org.springframework.core.task.TaskExecutor
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Controller
-import org.springframework.stereotype.Indexed
-import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker
 import org.telegram.telegrambots.meta.api.objects.Message
 import ru.taynov.tgbot.TelegramBot
-import javax.annotation.PostConstruct
 
 @Controller
 class MessageSender(
@@ -62,7 +57,4 @@ class MessageSender(
         NOT_DETECTED
     }
 
-    companion object {
-        private const val SENDER_SLEEP_TIME = 100
-    }
 }

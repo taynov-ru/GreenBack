@@ -4,9 +4,8 @@ import mu.KotlinLogging
 import org.springframework.stereotype.Component
 import ru.taynov.tgbot.callback.Callback
 import ru.taynov.tgbot.command.Command
-import ru.taynov.tgbot.state.State
-import ru.taynov.tgbot.service.UserService
 import ru.taynov.tgbot.state.ExtendedState
+import ru.taynov.tgbot.state.State
 
 @Component
 class HandlerProvider(
