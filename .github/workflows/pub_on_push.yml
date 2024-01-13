@@ -1,0 +1,64 @@
+name: Publish on Docker Hub and Deploy
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'cicd'
+
+env:
+  TELEGRAM_BOT_TOKEN: ${{secrets.TELEGRAM_BOT_TOKEN}}
+  DEPLOYMENT_SERVER: ${{secrets.DEPLOYMENT_SERVER}}
+  DEPLOYMENT_PORT: ${{secrets.DEPLOYMENT_PORT}}
+  DEPLOYMENT_TOKEN: ${{secrets.DEPLOYMENT_TOKEN}}
+  HOST_DATA_PATH: ${{secrets.HOST_DATA_PATH}}
+  DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
+  DOCKER_NAME: ${{ secrets.NAME }}
+  PASS: ${{secrets.DOCKER_PASS}}
+  DB_NAME: ${{secrets.DB_NAME}}
+  DB_HOST: ${{secrets.DB_HOST}}
+  DB_USER: ${{secrets.DB_USER}}
+  DB_PASS: ${{secrets.DB_PASS}}
+
+jobs:
+  run_tests:
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.9'
+          architecture: 'x64'
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Run tests
+        run: coverage run tests.py
+      - name: Tests report
+        run: coverage report
+
+  build_and_pub:
+    needs: [ run_tests ]
+    runs-on: [ ubuntu-latest ]
+    steps:
+      - name:  Login to Docker registry
+        run: echo ${DOCKER_PASS} | docker login -u $DOCKER_LOGIN --password-stdin
+        env:
+          DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
+          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+      - uses: actions/checkout@v3
+      - name: Build image
+        run: docker build -t $DOCKER_LOGIN/$DOCKER_NAME:${GITHUB_REF:11} -f Dockerfile .
+      - name: Push image to docker.io
+        run: docker push $DOCKER_LOGIN/$DOCKER_NAME:${GITHUB_REF:11}
+
+  deploy:
+    needs: [ build_and_pub ]
+    runs-on: [ ubuntu-latest ]
+    steps:
+      - name: Set tag to env
+        run: echo "RELEASE_VERSION=$(echo ${GITHUB_REF:11})" >> $GITHUB_ENV
+      - name: Send webhook for deploy
+        run: |
+          curl -v --silent --show-error --fail -X POST http://${{env.DEPLOYMENT_SERVER}}:${{env.DEPLOYMENT_PORT}}/ -H "Authorization: ${{env.DEPLOYMENT_TOKEN}}" -H 'Content-Type: application/json' -d '{"owner": "${{env.DOCKER_LOGIN}}", "repository": "${{env.DOCKER_NAME}}", "tag": "${{ env.RELEASE_VERSION }}", "kwargs": {"detach": true, "restart_policy": {"Name": "always"}, "ports": {"80/tcp": 80}, "environment": {"TELEGRAM_BOT_TOKEN": "${{env.TELEGRAM_BOT_TOKEN}}", "DB_NAME": "${{env.DB_NAME}}", "DB_USER": "${{env.DB_USER}}", "DB_PASS": "${{env.DB_PASS}}", "DB_HOST": "${{env.DB_HOST}}"}, "volumes": {"${{env.HOST_DATA_PATH}}": { "bind": "/Data", "mode": "rw"}}}}'
