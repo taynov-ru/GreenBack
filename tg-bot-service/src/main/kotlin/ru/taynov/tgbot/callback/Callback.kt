@@ -8,4 +8,6 @@ enum class Callback {
     UNKNOWN,
     CHANGE_PARAMETER,
     TO_SETTINGS,
+    UPDATE_INFO,
+    WINDOW_MODE,
 }

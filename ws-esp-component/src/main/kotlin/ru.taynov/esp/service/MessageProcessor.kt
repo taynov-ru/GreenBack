@@ -17,8 +17,8 @@ class MessageProcessor(
     private val params = listOf(
         ParamName.HEATING_ENABLED,
         ParamName.AUTO_CONTROL_HEAT,
-        ParamName.CHECKING_VOLTAGE_ENABLED,
-        ParamName.SILENT_MODE_ENABLED
+        ParamName.WINDOW_MODE,
+        ParamName.ALARM_LOUD_MODE_ENABLED
     )
 
     fun process(message: EspMessage) {

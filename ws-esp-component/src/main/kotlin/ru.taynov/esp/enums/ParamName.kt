@@ -13,5 +13,21 @@ enum class ParamName(
     HIGH_BOUND_HEAT_TEMPERATURE("Темп. выключения отопления 💧", Int::class),
     LOW_BOUND_ALARM_TEMPERATURE("Мин. температура сигнала 🔊", Int::class),
     LOW_BOUND_HEAT_TEMPERATURE("Темп. включения отопления 💧", Int::class),
-    SILENT_MODE_ENABLED("Звуковое оповещение 🔔", Boolean::class),
+    ALARM_LOUD_MODE_ENABLED("Звуковое оповещение 🔔", Boolean::class),
+    WINDOW_MODE("Форточка", WindowMode::class)
+}
+
+enum class WindowMode(
+    val value: String
+) {
+    CLOSED("Закрыто"),
+    AJAR("Приоткрыто"),
+    OPENED("Открыто"),
+    ;
+
+    companion object {
+        fun valueFromOrdinal(ordinal: Int): WindowMode {
+            return entries.getOrNull(ordinal) ?: CLOSED
+        }
+    }
 }

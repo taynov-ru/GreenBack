@@ -57,7 +57,7 @@ class HandlerProvider(
                 devicesHandler
             }
 
-            Callback.CHANGE_PARAMETER, Callback.TO_SETTINGS -> {
+            Callback.CHANGE_PARAMETER, Callback.TO_SETTINGS, Callback.UPDATE_INFO, Callback.WINDOW_MODE -> {
                 log.info("Handler for callback[$callback] is $controlHandler")
                 controlHandler
             }

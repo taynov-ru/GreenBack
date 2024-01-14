@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
 import ru.taynov.esp.enums.ParamName
+import ru.taynov.esp.enums.WindowMode
 import ru.taynov.esp.model.Param
 import ru.taynov.tgbot.callback.Callback
 import ru.taynov.tgbot.callback.ParsedCallback
@@ -44,6 +45,8 @@ class ControlHandler(
         return when (parsedCallback.callback) {
             Callback.CHANGE_PARAMETER -> changeParameter(chatId, parsedCallback.payload, message)
             Callback.TO_SETTINGS -> getSettings(chatId)
+            Callback.UPDATE_INFO -> updateMessageAfterChangeParameter(chatId, message.messageId, "info")
+            Callback.WINDOW_MODE -> setWindowMode(chatId, parsedCallback, message)
             else -> null
         }?.toOperateResult()
     }
@@ -70,9 +73,19 @@ class ControlHandler(
         }
     }
 
+    private fun setWindowMode(chatId: String, payload: ParsedCallback, message: Message): EditMessageText {
+        val user = userService.getUser(chatId)
+        val deviceId = user.selectedDevice ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
+        val state = payload.getParameter("PARENT_MESSAGE") ?: "info"
+        val mode = WindowMode.valueOf(payload.payload!!)
+        updateParameterService.setWindowModeParameter(deviceId, mode)
+
+        return updateMessageAfterChangeParameter(chatId, message.messageId, state)
+    }
+
     private fun getSettings(chatId: String): SendMessage {
-        val deviceId =
-            userService.getUser(chatId).selectedDevice ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
+        val deviceId = userService.getUser(chatId).selectedDevice
+            ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
         val data = interactionService.getLast(deviceId)
 
         return SendMessage().apply {
@@ -86,9 +99,8 @@ class ControlHandler(
         val deviceId =
             userService.getUser(chatId).selectedDevice ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
         val data = interactionService.getLast(deviceId)
-        val deviceName =
-            deviceService.getDeviceByChatId(chatId, deviceId)?.name
-                ?: throw ModuleError.UNKNOWN_DEVICE.getException()
+        val deviceName = deviceService.getDeviceByChatId(chatId, deviceId)?.name
+            ?: throw ModuleError.UNKNOWN_DEVICE.getException()
         return buildInfoMessage(chatId, data, deviceName, data)
     }
 
@@ -109,18 +121,28 @@ class ControlHandler(
             updateParameterService.inverseBooleanParameter(deviceId, parameter)
         }
 
-        return editKeyboardMessageAfterChangeParameter(chatId, message)
+        val fromMessage = if (message.text.contains("Настройка")) "settings" else "info"
+
+        if (parameter.type == WindowMode::class) {
+            return buildSetWindowModeKeyboard(chatId, message.messageId, fromMessage)
+        }
+
+        return updateMessageAfterChangeParameter(chatId, message.messageId, fromMessage)
     }
 
-    private fun editKeyboardMessageAfterChangeParameter(chatId: String, message: Message): EditMessageText {
-        val prevMessage = if (message.text.contains("Настройка"))
+    private fun updateMessageAfterChangeParameter(
+        chatId: String,
+        messageId: Int,
+        fromMessage: String
+    ): EditMessageText {
+        val prevMessage = if (fromMessage == "settings")
             getSettings(chatId)
         else
             getInfo(chatId)
 
         return EditMessageText().apply {
             this.chatId = chatId
-            this.messageId = message.messageId
+            this.messageId = messageId
             this.text = prevMessage.text
             this.replyMarkup = prevMessage.replyMarkup as InlineKeyboardMarkup
         }
@@ -172,7 +194,8 @@ class ControlHandler(
 
     private fun buildInfoButtons(params: List<Param>): InlineKeyboardMarkup {
         return InlineKeyboardMarkup().apply {
-            keyboard = params.map { buildChangeParameterButton(it) }
+            keyboard = listOf(buildUpdateInfoButton())
+                .plus(params.map { buildChangeParameterButton(it) })
         }
     }
 
@@ -189,6 +212,14 @@ class ControlHandler(
             InlineKeyboardButton().apply {
                 this.text = "Переименовать устройство  ✏️"
                 this.callbackData = ParsedCallback(Callback.EDIT_NAME_DEVICE).toString()
+            })
+    }
+
+    private fun buildUpdateInfoButton(): List<InlineKeyboardButton> {
+        return listOf(
+            InlineKeyboardButton().apply {
+                this.text = "Обновить информацию 🔄"
+                this.callbackData = ParsedCallback(Callback.UPDATE_INFO).toString()
             })
     }
 
@@ -209,12 +240,36 @@ class ControlHandler(
         }
     }
 
+    private fun buildSetWindowModeKeyboard(chatId: String, messageId: Int, fromMessage: String): EditMessageText {
+        return EditMessageText().apply {
+            this.chatId = chatId
+            this.messageId = messageId
+            this.text = "Режим форточки"
+            this.replyMarkup = InlineKeyboardMarkup().apply {
+                keyboard = listOf(WindowMode.entries.map {
+                    InlineKeyboardButton().apply {
+                        this.text = it.value
+                        this.callbackData = ParsedCallback(Callback.WINDOW_MODE, it.name).apply {
+                            setParameter(
+                                "PARENT_MESSAGE",
+                                fromMessage
+                            )
+                        }.toString()
+                    }
+                })
+            }
+        }
+    }
+
     private fun getText(param: Param): String {
         if (param.name.type == Boolean::class) {
             return (if (param.value == 0) "Включить" else "Выключить") + " " + param.name.value.lowercase()
         }
         if (param.name.type == Int::class) {
             return param.name.value + " " + param.value
+        }
+        if (param.name.type == WindowMode::class) {
+            return param.name.value + ": " + WindowMode.valueFromOrdinal(param.value).value
         }
         return param.name.value
     }

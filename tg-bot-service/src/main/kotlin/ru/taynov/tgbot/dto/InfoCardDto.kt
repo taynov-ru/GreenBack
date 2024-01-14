@@ -2,6 +2,7 @@ package ru.taynov.tgbot.dto
 
 import ru.taynov.esp.enums.Constants
 import ru.taynov.esp.enums.ParamName
+import ru.taynov.esp.enums.WindowMode
 import ru.taynov.esp.model.EspMessage
 import ru.taynov.esp.model.Param
 import ru.taynov.esp.model.Sensor
@@ -17,8 +18,8 @@ data class InfoCardDto(
         val allowedParams = listOf(
             ParamName.AUTO_CONTROL_HEAT,
             ParamName.HEATING_ENABLED,
-            ParamName.CHECKING_VOLTAGE_ENABLED,
-            ParamName.SILENT_MODE_ENABLED,
+            ParamName.ALARM_LOUD_MODE_ENABLED,
+            ParamName.WINDOW_MODE,
         )
 
         fun EspMessage?.toInfoCardDto(): InfoCardDto {
@@ -55,6 +56,7 @@ data class InfoCardDto(
         fun Int.convertValue(type: KClass<*>): String {
             return when (type) {
                 Boolean::class -> if (this == 0) "Выключено 🔴" else "Включено 🟢"
+                WindowMode::class -> WindowMode.valueFromOrdinal(this).value
 
                 else -> this.toString()
             }

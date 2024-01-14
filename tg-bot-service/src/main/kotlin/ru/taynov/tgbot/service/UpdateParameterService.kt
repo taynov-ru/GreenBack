@@ -3,6 +3,7 @@ package ru.taynov.tgbot.service
 import org.springframework.stereotype.Service
 import ru.taynov.esp.dto.SetParamsResponse
 import ru.taynov.esp.enums.ParamName
+import ru.taynov.esp.enums.WindowMode
 import ru.taynov.esp.model.Param
 import ru.taynov.tgbot.enums.ModuleError
 
@@ -39,6 +40,10 @@ class UpdateParameterService(
             else -> {}
         }
         interactionService.sendMessage(deviceId, SetParamsResponse(setOf(Param(parameter, value))))
+    }
+
+    fun setWindowModeParameter(deviceId: String, mode: WindowMode) {
+        interactionService.sendMessage(deviceId, SetParamsResponse(setOf(Param(ParamName.WINDOW_MODE, mode.ordinal))))
     }
 
     private fun shouldLowerThan(newValue: Int, comparableParameter: ParamName, currentParameters: List<Param>) {

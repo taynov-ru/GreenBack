@@ -1,5 +1,6 @@
 package ru.taynov.tgbot.callback
 
+import kotlinx.serialization.json.Json
 import mu.KLogger
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
@@ -16,12 +17,19 @@ class CallbackParser {
         }
         val callbackAndText = getDelimitedCallbackFromText(trimText)
 
-        return ParsedCallback(getCallbackFromText(callbackAndText.first), callbackAndText.second)
+
+        val parameters =
+            runCatching { Json.decodeFromString(callbackAndText.second) as Map<String, String?> }.getOrNull()
+                ?: emptyMap()
+
+        return ParsedCallback(getCallbackFromText(callbackAndText.first)).apply {
+            parameters.entries.forEach { setParameter(it.key, it.value) }
+        }
     }
 
     private fun getCallbackFromText(text: String): Callback {
         val result = Callback.entries.firstOrNull { text == it.name } ?: Callback.UNKNOWN
-        if (result == Callback.UNKNOWN) log.debug("Can't parse command: $text")
+        if (result == Callback.UNKNOWN) log.debug("Can't parse callback: $text")
         return result
     }
 
