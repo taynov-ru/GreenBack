@@ -6,7 +6,7 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
@@ -23,7 +23,7 @@ class TelegramBot(
 ) {
     private val log = KotlinLogging.logger {}
 
-    val sendQueue: Queue<BotApiMethod<*>> = LinkedBlockingQueue()
+    val sendQueue: Queue<PartialBotApiMethod<*>> = LinkedBlockingQueue()
     val receiveQueue: Queue<Update> = LinkedBlockingQueue()
 
     @EventListener(*[ContextRefreshedEvent::class])

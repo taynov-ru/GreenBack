@@ -12,17 +12,17 @@ import ru.taynov.tgbot.command.ParsedCommand
 import ru.taynov.tgbot.dto.DeviceDto
 import ru.taynov.tgbot.dto.OperateResultDto
 import ru.taynov.tgbot.dto.toOperateResult
-import ru.taynov.tgbot.state.State
 import ru.taynov.tgbot.service.DeviceService
 import ru.taynov.tgbot.service.UserService
 import ru.taynov.tgbot.state.ExtendedState
-import ru.taynov.tgbot.validator.DeviceValidator
+import ru.taynov.tgbot.state.State
+import ru.taynov.tgbot.validator.ValidationService
 
 @Component
 class DevicesHandler(
     private val deviceService: DeviceService,
     private val userService: UserService,
-    private val deviceValidator: DeviceValidator,
+    private val validatorService: ValidationService,
 ) : MessageHandler {
 
     override fun operateCommand(chatId: String, parsedCommand: ParsedCommand, message: Message): OperateResultDto? {
@@ -67,7 +67,7 @@ class DevicesHandler(
     }
 
     private fun enterDeviceId(chatId: String, text: String): SendMessage {
-        deviceValidator.validateDeviceId(text)
+        validatorService.validateDeviceId(text)
         deviceService.createDevice(chatId, text)
         userService.setState(chatId, State.ADD_DEVICE_ENTER_NAME)
         return SendMessage(chatId, "Устройство добавлено. Введи название")

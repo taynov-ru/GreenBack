@@ -17,6 +17,7 @@ import ru.taynov.tgbot.command.CommandParser
 import ru.taynov.tgbot.dto.OperateResultDto
 import ru.taynov.tgbot.enums.ModuleError
 import ru.taynov.tgbot.handler.HandlerProvider
+import ru.taynov.tgbot.monitoring.AlertingService
 import ru.taynov.tgbot.state.State
 
 
@@ -27,6 +28,7 @@ class MessageReceiver(
     private val callbackParser: CallbackParser,
     private val handlerProvider: HandlerProvider,
     private val userService: UserService,
+    private val alertingService: AlertingService,
 ) {
     private val log = KotlinLogging.logger {}
 
@@ -101,6 +103,9 @@ class MessageReceiver(
                             ModuleError.INTERNAL_ERROR.text
                         }
                 })
+                if (it !is ModuleError.TgBotException) {
+                    alertingService.sendStacktrace(it)
+                }
             }
     }
 

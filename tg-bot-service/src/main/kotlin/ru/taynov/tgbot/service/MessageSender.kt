@@ -8,6 +8,7 @@ import mu.KLogger
 import mu.KotlinLogging
 import org.springframework.stereotype.Controller
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker
 import org.telegram.telegrambots.meta.api.objects.Message
 import ru.taynov.tgbot.TelegramBot
@@ -42,19 +43,26 @@ class MessageSender(
                 bot.execute(message)
             }
 
+            MessageType.DOCUMENT-> {
+                val message = method as SendDocument
+                bot.execute(message)
+            }
+
             else -> log.warn("Cant detect type of object. $method")
         }
     }
 
     private fun messageType(message: Any): MessageType {
         if (message is SendSticker) return MessageType.STICKER
+        if (message is SendDocument) return MessageType.DOCUMENT
         return if (message is BotApiMethod<*>) MessageType.EXECUTE else MessageType.NOT_DETECTED
     }
 
     internal enum class MessageType {
         EXECUTE,
         STICKER,
-        NOT_DETECTED
+        NOT_DETECTED,
+        DOCUMENT
     }
 
 }
