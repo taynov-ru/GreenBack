@@ -12,6 +12,7 @@ import ru.taynov.esp.enums.WindowMode
 import ru.taynov.esp.model.Param
 import ru.taynov.tgbot.callback.Callback
 import ru.taynov.tgbot.callback.ParsedCallback
+import ru.taynov.tgbot.callback.ParsedCallback.ParameterEnum.PARENT_MESSAGE
 import ru.taynov.tgbot.command.Command
 import ru.taynov.tgbot.command.ParsedCommand
 import ru.taynov.tgbot.dto.InfoCardDto
@@ -45,7 +46,7 @@ class ControlHandler(
         return when (parsedCallback.callback) {
             Callback.CHANGE_PARAMETER -> changeParameter(chatId, parsedCallback.payload, message)
             Callback.TO_SETTINGS -> getSettings(chatId)
-            Callback.UPDATE_INFO -> updateMessageAfterChangeParameter(chatId, message.messageId, "info")
+            Callback.UPDATE_INFO -> updateMessageAfterChangeParameter(chatId, message.messageId, INFO)
             Callback.WINDOW_MODE -> setWindowMode(chatId, parsedCallback, message)
             else -> null
         }?.toOperateResult()
@@ -76,8 +77,8 @@ class ControlHandler(
     private fun setWindowMode(chatId: String, payload: ParsedCallback, message: Message): EditMessageText {
         val user = userService.getUser(chatId)
         val deviceId = user.selectedDevice ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
-        val state = payload.getParameter("PARENT_MESSAGE") ?: "info"
-        val mode = WindowMode.valueOf(payload.payload!!)
+        val state = payload.getParameter(PARENT_MESSAGE) ?: INFO
+        val mode = WindowMode.valueOf(payload.payload)
         updateParameterService.setWindowModeParameter(deviceId, mode)
 
         return updateMessageAfterChangeParameter(chatId, message.messageId, state)
@@ -121,7 +122,7 @@ class ControlHandler(
             updateParameterService.inverseBooleanParameter(deviceId, parameter)
         }
 
-        val fromMessage = if (message.text.contains("Настройка")) "settings" else "info"
+        val fromMessage = if (message.text.contains("Настройка")) SETTINGS else INFO
 
         if (parameter.type == WindowMode::class) {
             return buildSetWindowModeKeyboard(chatId, message.messageId, fromMessage)
@@ -135,7 +136,7 @@ class ControlHandler(
         messageId: Int,
         fromMessage: String
     ): EditMessageText {
-        val prevMessage = if (fromMessage == "settings")
+        val prevMessage = if (fromMessage == SETTINGS)
             getSettings(chatId)
         else
             getInfo(chatId)
@@ -251,7 +252,7 @@ class ControlHandler(
                         this.text = it.value
                         this.callbackData = ParsedCallback(Callback.WINDOW_MODE, it.name).apply {
                             setParameter(
-                                "PARENT_MESSAGE",
+                                PARENT_MESSAGE,
                                 fromMessage
                             )
                         }.toString()
@@ -272,5 +273,10 @@ class ControlHandler(
             return param.name.value + ": " + WindowMode.valueFromOrdinal(param.value).value
         }
         return param.name.value
+    }
+
+    companion object {
+        private const val INFO: String = "info"
+        private const val SETTINGS: String = "settings"
     }
 }

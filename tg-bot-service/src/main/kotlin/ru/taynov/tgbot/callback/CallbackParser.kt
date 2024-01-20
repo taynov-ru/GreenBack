@@ -4,6 +4,7 @@ import kotlinx.serialization.json.Json
 import mu.KLogger
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
+import ru.taynov.tgbot.callback.ParsedCallback.ParameterEnum
 
 @Component
 class CallbackParser {
@@ -23,7 +24,7 @@ class CallbackParser {
                 ?: emptyMap()
 
         return ParsedCallback(getCallbackFromText(callbackAndText.first)).apply {
-            parameters.entries.forEach { setParameter(it.key, it.value) }
+            parameters.entries.forEach { setParameter(ParameterEnum.valueOf(it.key), it.value) }
         }
     }
 
