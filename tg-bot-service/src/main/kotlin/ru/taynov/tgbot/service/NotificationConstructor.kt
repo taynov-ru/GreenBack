@@ -2,6 +2,7 @@ package ru.taynov.tgbot.service
 
 import org.springframework.stereotype.Component
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import ru.taynov.esp.enums.DeviceStatus
 import ru.taynov.esp.model.Param
 import ru.taynov.tgbot.TelegramBot
 import ru.taynov.tgbot.dto.InfoCardDto.Companion.convertValue
@@ -25,6 +26,17 @@ class NotificationConstructor(
     fun setCallbacks() {
         interactionService.setAlarmCallback(alarmCallback)
         interactionService.setParamsCallback(changedParamsCallback)
+        interactionService.setDeviceStatusCallback(deviceStatusCallback)
+    }
+
+    private val deviceStatusCallback: ((deviceId: String, status: DeviceStatus) -> Unit) = { deviceId, status ->
+        userStateRepository.findAllBySelectedDevice(deviceId).forEach {
+            bot.sendQueue.add(SendMessage(it.userId.toString(), buildChangedDeviceStatusText(status)))
+        }
+    }
+
+    private fun buildChangedDeviceStatusText(status: DeviceStatus): String {
+        return if (status == DeviceStatus.ONLINE) "Связь с устройством восстановлена" else "Связь с устройством потеряна"
     }
 
     private val alarmCallback: ((deviceId: String) -> Unit) = { deviceId ->

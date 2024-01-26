@@ -9,8 +9,8 @@ import ru.taynov.esp.service.MessageProcessor
 
 @RestController
 class EspMessageHandler(
-    val messageProcessor: MessageProcessor,
-    val logger: IncomingMessageLogger
+    private val messageProcessor: MessageProcessor,
+    private val logger: IncomingMessageLogger,
 ) {
 
     @MessageMapping("/server")

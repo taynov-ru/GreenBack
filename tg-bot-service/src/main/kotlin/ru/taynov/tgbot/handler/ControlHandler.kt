@@ -173,9 +173,10 @@ class ControlHandler(
         data: InfoCardDto
     ): SendMessage {
         val text = """
-            Информация об устройстве: $deviceName. 
-            ${cardDto.sensorsAndParams.joinToString(separator = "\n\n", prefix = "\n") { "${it.name}: ${it.value}" }}
-            """.trimIndent()
+Информация об устройстве: $deviceName.
+Статус: ${if (data.isOnline) "Онлайн" else "Недоступно"} 
+${cardDto.sensorsAndParams.joinToString(separator = "\n\n", prefix = "\n") { "${it.name}: ${it.value}" }}
+""".trimIndent()
 
         return SendMessage().apply {
             this.chatId = chatId

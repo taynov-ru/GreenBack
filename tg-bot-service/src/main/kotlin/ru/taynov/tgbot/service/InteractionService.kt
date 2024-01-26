@@ -2,7 +2,9 @@ package ru.taynov.tgbot.service
 
 import org.springframework.stereotype.Service
 import ru.taynov.esp.dto.SetParamsResponse
+import ru.taynov.esp.enums.DeviceStatus
 import ru.taynov.esp.enums.ParamName
+import ru.taynov.esp.exception.DeviceOfflineException
 import ru.taynov.esp.model.Param
 import ru.taynov.esp.service.EspInteractionService
 import ru.taynov.tgbot.dto.InfoCardDto
@@ -15,7 +17,11 @@ class InteractionService(
 ) {
 
     fun sendMessage(device: String, message: SetParamsResponse) {
-        service.sendMessage(device, message)
+        try {
+            service.sendMessage(device, message)
+        } catch (e: DeviceOfflineException) {
+            throw ModuleError.DEVICE_IS_OFFLINE.getException()
+        }
     }
 
     fun getParameterValue(deviceId: String, param: ParamName): Int {
@@ -33,6 +39,10 @@ class InteractionService(
 
     fun setParamsCallback(callback: (deviceId: String, params: List<Param>) -> Unit) {
         service.setParamsCallback(callback)
+    }
+
+    fun setDeviceStatusCallback(callback: (deviceId: String, status: DeviceStatus) -> Unit) {
+        service.setDeviceStatusCallback(callback)
     }
 
     fun getDevices(): List<String> {

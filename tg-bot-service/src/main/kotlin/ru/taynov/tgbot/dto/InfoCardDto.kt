@@ -10,7 +10,8 @@ import kotlin.reflect.KClass
 
 data class InfoCardDto(
     val sensorsAndParams: List<SensorDto>,
-    val params: List<Param> = emptyList()
+    val params: List<Param> = emptyList(),
+    val isOnline: Boolean = false,
 ) {
 
     companion object {
@@ -33,7 +34,7 @@ data class InfoCardDto(
                 }
             }
             sensorList.addAll(params)
-            return InfoCardDto(sensorList, ParamName.entries.mapNotNull { paramsMap[it] })
+            return InfoCardDto(sensorList, ParamName.entries.mapNotNull { paramsMap[it] }, isOnline)
         }
 
         private fun mapToSensorDto(sensor: Sensor): SensorDto {

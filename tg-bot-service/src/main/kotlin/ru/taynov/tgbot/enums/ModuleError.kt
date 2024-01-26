@@ -5,6 +5,7 @@ enum class ModuleError(val text: String) {
     BEFORE_SELECT_DEVICE("Сначала выбери устройство"),
     PARAMETER_NOT_FOUND("Параметр не найден"),
     VALUE_INCORRECT("Значение некорректно"),
+    DEVICE_IS_OFFLINE( "Устройство недоступно"),
     UNKNOWN_DEVICE("Неизвестное устройство");
 
     fun getException() = TgBotException(text)

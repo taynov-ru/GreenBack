@@ -11,7 +11,9 @@ data class EspMessage(
     val id: String,
     val sensors: List<Sensor>?,
     val params: List<Param>?,
-)
+) {
+    var isOnline: Boolean = true
+}
 
 @Serializable
 data class Sensor(
@@ -25,4 +27,5 @@ data class Param(
     var value: Int
 )
 
-fun EspDataEntity.toModel(): EspMessage = Json.decodeFromString(data)
+fun EspDataEntity.toModel(isOnline: Boolean): EspMessage =
+    Json.decodeFromString<EspMessage>(data).apply { this.isOnline = isOnline }
