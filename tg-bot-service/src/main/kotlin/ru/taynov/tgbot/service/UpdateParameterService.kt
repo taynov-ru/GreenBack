@@ -29,7 +29,11 @@ class UpdateParameterService(
     }
 
     fun setWindowModeParameter(deviceId: String, mode: WindowMode) {
-        interactionService.sendMessage(deviceId, SetParamsResponse(setOf(Param(ParamName.WINDOW_MODE, mode.ordinal))))
+        val params = setOf(
+            Param(ParamName.WINDOW_MODE, mode.ordinal),
+            Param(ParamName.AUTO_CONTROL_WINDOW, 0)
+        )
+        interactionService.sendMessage(deviceId, SetParamsResponse(params))
     }
 
     private fun disableAutoHeatControllingIfHeatingChanged(newParameters: MutableSet<Param>) {

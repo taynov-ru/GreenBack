@@ -20,22 +20,28 @@ class ValidationService(
         val currentParameters = interactionService.getLast(deviceId).params
         when (parameter) {
             ParamName.LOW_BOUND_ALARM_TEMPERATURE ->
-                shouldLowerThan(value, ParamName.HIGH_BOUND_ALARM_TEMPERATURE, currentParameters)
+                shouldLessThan(value, ParamName.HIGH_BOUND_ALARM_TEMPERATURE, currentParameters)
 
             ParamName.HIGH_BOUND_ALARM_TEMPERATURE ->
                 shouldGreaterThan(value, ParamName.LOW_BOUND_ALARM_TEMPERATURE, currentParameters)
 
             ParamName.LOW_BOUND_HEAT_TEMPERATURE ->
-                shouldLowerThan(value, ParamName.HIGH_BOUND_HEAT_TEMPERATURE, currentParameters)
+                shouldLessThan(value, ParamName.HIGH_BOUND_HEAT_TEMPERATURE, currentParameters)
 
             ParamName.HIGH_BOUND_HEAT_TEMPERATURE ->
                 shouldGreaterThan(value, ParamName.LOW_BOUND_HEAT_TEMPERATURE, currentParameters)
+
+            ParamName.OPEN_WINDOW_TEMPERATURE ->
+                shouldGreaterThan(value, ParamName.CLOSE_WINDOW_TEMPERATURE, currentParameters)
+
+            ParamName.CLOSE_WINDOW_TEMPERATURE ->
+                shouldLessThan(value, ParamName.OPEN_WINDOW_TEMPERATURE, currentParameters)
 
             else -> {}
         }
     }
 
-    private fun shouldLowerThan(newValue: Int, comparableParameter: ParamName, currentParameters: List<Param>) {
+    private fun shouldLessThan(newValue: Int, comparableParameter: ParamName, currentParameters: List<Param>) {
         if (currentParameters.getParameterValue(comparableParameter)?.let { newValue >= it } != false)
             throw ModuleError.VALUE_INCORRECT.getException("Значение должно быть меньше значения \"${comparableParameter.value}\"")
     }

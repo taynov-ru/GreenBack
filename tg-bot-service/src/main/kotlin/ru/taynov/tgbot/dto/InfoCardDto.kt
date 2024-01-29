@@ -21,6 +21,7 @@ data class InfoCardDto(
             ParamName.HEATING_ENABLED,
             ParamName.ALARM_LOUD_MODE_ENABLED,
             ParamName.WINDOW_MODE,
+            ParamName.AUTO_CONTROL_WINDOW,
         )
 
         fun EspMessage?.toInfoCardDto(): InfoCardDto {

@@ -70,7 +70,7 @@ class EspInteractionService(
     private fun replaceParametersInSavedMessage(device: String, message: SetParamsResponse) {
         val savedMessage = repository.findById(device).getOrNull()?.toModel(onlineDeviceService.isOnline(device))
         message.params.forEach { toSave ->
-            savedMessage?.params?.first { it.name == toSave.name }?.value = toSave.value
+            savedMessage?.params?.firstOrNull { it.name == toSave.name }?.value = toSave.value
         }
         savedMessage?.let { repository.save(it.toEntity()) }
     }

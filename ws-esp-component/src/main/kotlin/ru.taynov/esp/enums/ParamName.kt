@@ -14,7 +14,10 @@ enum class ParamName(
     LOW_BOUND_ALARM_TEMPERATURE("Мин. температура сигнала 🔊", Int::class),
     LOW_BOUND_HEAT_TEMPERATURE("Темп. включения отопления 💧", Int::class),
     ALARM_LOUD_MODE_ENABLED("Звуковое оповещение 🔔", Boolean::class),
-    WINDOW_MODE("Форточка", WindowMode::class)
+    WINDOW_MODE("Форточка", WindowMode::class),
+    AUTO_CONTROL_WINDOW("Автоматическое управление форточкой", Boolean::class),
+    CLOSE_WINDOW_TEMPERATURE("Темп. закрытия форточки", Int::class),
+    OPEN_WINDOW_TEMPERATURE("Темп. открытия форточки", Int::class),
 }
 
 enum class WindowMode(

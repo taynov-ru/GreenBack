@@ -13,13 +13,15 @@ class MessageProcessor(
     private val espInteractionService: EspInteractionService,
     private val dataRepository: EspDataRepository,
 ) {
-
-    private val params = listOf(
-        ParamName.HEATING_ENABLED,
-        ParamName.AUTO_CONTROL_HEAT,
-        ParamName.WINDOW_MODE,
-        ParamName.ALARM_LOUD_MODE_ENABLED
-    )
+    companion object {
+        private val PARAMS = listOf(
+            ParamName.HEATING_ENABLED,
+            ParamName.AUTO_CONTROL_HEAT,
+            ParamName.WINDOW_MODE,
+            ParamName.ALARM_LOUD_MODE_ENABLED,
+            ParamName.AUTO_CONTROL_WINDOW,
+        )
+    }
 
     fun process(message: EspMessage) {
         runCatching { checkMessageContainsAlarm(message) }
@@ -30,7 +32,7 @@ class MessageProcessor(
     private fun checkChangedParams(message: EspMessage) {
         val lastStateOfParams = espInteractionService.getLast(message.id)?.params ?: emptyList()
         if (lastStateOfParams.isNotEmpty()) {
-            message.params?.filter { it.name in params && lastStateOfParams.first { last -> last.name == it.name }.value != it.value }
+            message.params?.filter { it.name in PARAMS && lastStateOfParams.first { last -> last.name == it.name }.value != it.value }
                 ?.takeIf { it.isNotEmpty() }?.let {
                     espInteractionService.invokeParamsCallback(message.id, it)
                 }
