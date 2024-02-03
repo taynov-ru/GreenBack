@@ -20,7 +20,7 @@ open class EspDataEntity(
     val id: String = "no_id",
     @Column(length = 2048)
     val data: String = "no_data",
-    val createdAt: LocalDateTime? = null,
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 )
 
 fun EspMessage.toEntity(): EspDataEntity = EspDataEntity(

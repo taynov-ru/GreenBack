@@ -4,6 +4,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import ru.taynov.esp.entity.EspDataEntity
 import ru.taynov.esp.enums.ParamName
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 @Serializable
 data class EspMessage(
@@ -13,6 +15,7 @@ data class EspMessage(
     val params: List<Param>?,
 ) {
     var isOnline: Boolean = true
+    var timestamp: Long = 0
 }
 
 @Serializable
@@ -28,4 +31,5 @@ data class Param(
 )
 
 fun EspDataEntity.toModel(isOnline: Boolean): EspMessage =
-    Json.decodeFromString<EspMessage>(data).apply { this.isOnline = isOnline }
+    Json.decodeFromString<EspMessage>(data)
+        .apply { this.isOnline = isOnline; this.timestamp = createdAt.toEpochSecond(ZoneOffset.UTC) }
