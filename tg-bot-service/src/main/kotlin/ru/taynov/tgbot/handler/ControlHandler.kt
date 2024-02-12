@@ -87,12 +87,15 @@ class ControlHandler(
     private fun getSettings(chatId: String): SendMessage {
         val deviceId = userService.getUser(chatId).selectedDevice
             ?: throw ModuleError.BEFORE_SELECT_DEVICE.getException()
+        val deviceName = deviceService.getDeviceByChatId(chatId, deviceId)?.name
+            ?: throw ModuleError.UNKNOWN_DEVICE.getException()
+
         val data = interactionService.getLast(deviceId)
 
         return SendMessage().apply {
             this.chatId = chatId
-            this.text = "Настройка параметров 🔧"
-            this.replyMarkup = buildSettingsKeyboard(data.params)
+            this.text = "Настройка параметров $deviceName🔧"
+            this.replyMarkup = buildSettingsKeyboard(data.params, data.isOnline)
         }
     }
 
@@ -172,21 +175,23 @@ class ControlHandler(
         deviceName: String,
         data: InfoCardDto
     ): SendMessage {
-        val text = """
-Информация об устройстве: $deviceName.
-Статус: ${if (data.isOnline) "Онлайн" else "Недоступно"} 
-${cardDto.sensorsAndParams.joinToString(separator = "\n\n", prefix = "\n") { "${it.name}: ${it.value}" }}
-""".trimIndent()
+
+        val text = if (data.isOnline) buildOnlineInfoText(deviceName, cardDto)
+        else buildOfflineInfoText(deviceName)
+
+        val replyMarkup =
+            if (data.isOnline) buildInfoButtons(data.params.filter { InfoCardDto.allowedParams.contains(it.name) })
+            else InlineKeyboardMarkup(listOf(buildUpdateInfoButton()))
 
         return SendMessage().apply {
             this.chatId = chatId
             this.text = text
-            this.replyMarkup = buildInfoButtons(data.params.filter { InfoCardDto.allowedParams.contains(it.name) })
+            this.replyMarkup = replyMarkup
         }
     }
 
-    private fun buildSettingsKeyboard(params: List<Param>): InlineKeyboardMarkup {
-        val buttons = params.map { buildChangeParameterButton(it) }
+    private fun buildSettingsKeyboard(params: List<Param>, isOnline: Boolean): InlineKeyboardMarkup {
+        val buttons = params.filter { isOnline }.map { buildChangeParameterButton(it) }
             .plusElement(buildEditDeviceButton())
             .plusElement(buildDeleteDeviceButton())
         return InlineKeyboardMarkup().apply {
@@ -274,6 +279,21 @@ ${cardDto.sensorsAndParams.joinToString(separator = "\n\n", prefix = "\n") { "${
             return param.name.value + ": " + WindowMode.valueFromOrdinal(param.value).value
         }
         return param.name.value
+    }
+
+    private fun buildOfflineInfoText(deviceName: String): String {
+        return """
+        Информация об устройстве: $deviceName.
+        Статус: "Недоступен" 
+        """.trimIndent()
+    }
+
+    private fun buildOnlineInfoText(deviceName: String, cardDto: InfoCardDto): String {
+        return """
+        Информация об устройстве: $deviceName.
+        Статус: "Онлайн" 
+        ${cardDto.sensorsAndParams.joinToString(separator = "\n\n", prefix = "\n") { "${it.name}: ${it.value}" }}
+        """.trimIndent()
     }
 
     companion object {
