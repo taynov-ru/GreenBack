@@ -5,10 +5,12 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.InputFile
 import ru.taynov.tgbot.TelegramBot
 import java.io.File
 import java.io.FileWriter
+import javax.annotation.PostConstruct
 
 @Service
 class AlertingService(
@@ -17,6 +19,14 @@ class AlertingService(
     val adminId: String
 ) {
     private val log: KLogger = KotlinLogging.logger { }
+
+    @PostConstruct
+    fun sendOnStartMessage() {
+        bot.sendQueue.add(SendMessage().apply {
+            chatId = adminId
+            text = "Бот запущен"
+        })
+    }
 
     fun sendStacktrace(throwable: Throwable) {
         runCatching {
