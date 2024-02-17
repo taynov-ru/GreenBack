@@ -180,7 +180,7 @@ class ControlHandler(
         else buildOfflineInfoText(deviceName)
 
         val replyMarkup =
-            if (data.isOnline) buildInfoButtons(data.params.filter { InfoCardDto.allowedParams.contains(it.name) })
+            if (data.isOnline) buildInfoButtons(data.params.filter { InfoCardDto.allowedButtons.contains(it.name) })
             else InlineKeyboardMarkup(listOf(buildUpdateInfoButton()))
 
         return SendMessage().apply {

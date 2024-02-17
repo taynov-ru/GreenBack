@@ -20,6 +20,13 @@ data class InfoCardDto(
             ParamName.AUTO_CONTROL_HEAT,
             ParamName.HEATING_ENABLED,
             ParamName.ALARM_LOUD_MODE_ENABLED,
+            ParamName.AUTO_CONTROL_WINDOW,
+        )
+
+        val allowedButtons = listOf(
+            ParamName.AUTO_CONTROL_HEAT,
+            ParamName.HEATING_ENABLED,
+            ParamName.ALARM_LOUD_MODE_ENABLED,
             ParamName.WINDOW_MODE,
             ParamName.AUTO_CONTROL_WINDOW,
         )
