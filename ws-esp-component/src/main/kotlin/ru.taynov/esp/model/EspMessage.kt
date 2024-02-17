@@ -30,6 +30,12 @@ data class Param(
     var value: Int
 )
 
+@Serializable
+data class Command(
+    val name: ParamName,
+    var value: Int
+)
+
 fun EspDataEntity.toModel(isOnline: Boolean): EspMessage =
     Json.decodeFromString<EspMessage>(data)
         .apply { this.isOnline = isOnline; this.timestamp = createdAt.toEpochSecond(ZoneOffset.UTC) }

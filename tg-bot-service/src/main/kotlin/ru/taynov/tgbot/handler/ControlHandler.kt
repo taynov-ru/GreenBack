@@ -275,9 +275,6 @@ class ControlHandler(
         if (param.name.type == Int::class) {
             return param.name.value + " " + param.value
         }
-        if (param.name.type == WindowMode::class) {
-            return param.name.value + ": " + WindowMode.valueFromOrdinal(param.value).value
-        }
         return param.name.value
     }
 
