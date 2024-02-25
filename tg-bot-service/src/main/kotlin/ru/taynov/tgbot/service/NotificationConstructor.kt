@@ -59,11 +59,7 @@ class NotificationConstructor(
 
     private fun buildAlarmText(deviceName: String): String {
         return """
-            🚨🚨🚨
-            
-            Сигнал на устройстве: $deviceName
-             
-            🚨🚨🚨
+            🚨🚨🚨 Сигнал на устройстве: $deviceName
         """.trimIndent()
     }
 }
