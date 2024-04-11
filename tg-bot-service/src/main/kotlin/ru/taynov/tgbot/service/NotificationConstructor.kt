@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import ru.taynov.esp.enums.DeviceStatus
 import ru.taynov.esp.model.Param
 import ru.taynov.tgbot.TelegramBot
+import ru.taynov.tgbot.config.NotificationProperties
 import ru.taynov.tgbot.dto.InfoCardDto.Companion.convertValue
 import ru.taynov.tgbot.dto.toDeviceDto
 import ru.taynov.tgbot.repository.DeviceAssignmentRepository
@@ -20,13 +21,17 @@ class NotificationConstructor(
     private val deviceRepository: DeviceRepository,
     private val userStateRepository: UserStateRepository,
     private val interactionService: InteractionService,
+    private val notificationProperties: NotificationProperties
 ) {
 
     @PostConstruct
     fun setCallbacks() {
-        interactionService.setAlarmCallback(alarmCallback)
-        interactionService.setParamsCallback(changedParamsCallback)
-        interactionService.setDeviceStatusCallback(deviceStatusCallback)
+        if (notificationProperties.alarm)
+            interactionService.setAlarmCallback(alarmCallback)
+        if (notificationProperties.changedParameter)
+            interactionService.setParamsCallback(changedParamsCallback)
+        if (notificationProperties.deviceStatus)
+            interactionService.setDeviceStatusCallback(deviceStatusCallback)
     }
 
     private val deviceStatusCallback: ((deviceId: String, status: DeviceStatus) -> Unit) = { deviceId, status ->
