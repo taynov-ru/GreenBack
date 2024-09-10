@@ -43,6 +43,7 @@ class MessageSender(
                 bot.execute(message)
             }
 
+
             else -> log.warn("Cant detect type of object. $method")
         }
     }
