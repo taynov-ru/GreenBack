@@ -2,7 +2,6 @@ package ru.taynov.tgbot.service
 
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.springframework.stereotype.Controller
@@ -21,6 +20,7 @@ import ru.taynov.tgbot.monitoring.AlertingService
 import ru.taynov.tgbot.state.State
 
 
+@OptIn(DelicateCoroutinesApi::class)
 @Controller
 class MessageReceiver(
     private val bot: TelegramBot,
@@ -32,19 +32,13 @@ class MessageReceiver(
 ) {
     private val log = KotlinLogging.logger {}
 
-    @OptIn(DelicateCoroutinesApi::class)
-    val globalScopeReporter = GlobalScope.launch {
-        while (true) {
-            try {
-                val update = bot.receiveQueue.poll() ?: continue
+    init {
+        GlobalScope.launch {
+            for (update in bot.getReceiveQueue()) {
                 analyze(update)
-            } catch (ex: Exception) {
-                log.error(ex) { "Analyze error" }
             }
-            delay(500)
         }
     }
-
 
     private fun analyze(update: Update) {
         if (update.hasMessage()) {
@@ -90,11 +84,11 @@ class MessageReceiver(
         runCatching { function() }
             .onSuccess {
                 it?.result?.let { result ->
-                    bot.sendQueue.add(result)
+                    bot.send(result)
                 }
             }
             .onFailure {
-                bot.sendQueue.add(SendMessage().apply {
+                bot.send(SendMessage().apply {
                     this.chatId = chatId
                     this.text =
                         if (it is ModuleError.TgBotException) it.message.toString()
@@ -108,6 +102,7 @@ class MessageReceiver(
                 }
             }
     }
+
 
     private fun clearState(chatId: String) {
         userService.setState(chatId, State.NONE)

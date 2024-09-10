@@ -22,7 +22,7 @@ class AlertingService(
 
     @PostConstruct
     fun sendOnStartMessage() {
-        bot.sendQueue.add(SendMessage().apply {
+        bot.send(SendMessage().apply {
             chatId = adminId
             text = "Бот запущен"
         })
@@ -39,9 +39,8 @@ class AlertingService(
             val sendDocument = SendDocument().apply {
                 this.chatId = adminId
                 this.document = InputFile(tempFile, tempFile.name)
-
             }
-            bot.sendQueue.add(sendDocument)
+            bot.send(sendDocument)
         }.onFailure {
             log.warn(it) { "Ошибка при отправке stacktrace" }
         }

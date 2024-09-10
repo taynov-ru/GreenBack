@@ -1,5 +1,7 @@
 package ru.taynov.tgbot
 
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
@@ -11,20 +13,17 @@ import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 import ru.taynov.tgbot.config.BotConfig
-import java.util.*
-import java.util.concurrent.LinkedBlockingQueue
 
 
 @Component
 class TelegramBot(
     private val config: BotConfig
-) : TelegramLongPollingBot(
-    config.token
-) {
+) : TelegramLongPollingBot(config.token) {
+
     private val log = KotlinLogging.logger {}
 
-    val sendQueue: Queue<PartialBotApiMethod<*>> = LinkedBlockingQueue()
-    val receiveQueue: Queue<Update> = LinkedBlockingQueue()
+    private val sendQueue: Channel<PartialBotApiMethod<*>> = Channel(Channel.UNLIMITED)
+    private val receiveQueue: Channel<Update> = Channel(Channel.UNLIMITED)
 
     @EventListener(*[ContextRefreshedEvent::class])
     fun init() {
@@ -40,8 +39,20 @@ class TelegramBot(
         return config.name
     }
 
+    fun getSendQueue() = sendQueue
+    fun getReceiveQueue() = receiveQueue
+
     override fun onUpdateReceived(update: Update) {
         log.debug("Received update. updateID: " + update.updateId)
-        receiveQueue.add(update)
+        runBlocking {
+            getReceiveQueue().send(update)
+        }
     }
+
+    fun send(message: PartialBotApiMethod<*>) {
+        runBlocking {
+            getSendQueue().send(message)
+        }
+    }
+
 }

@@ -36,7 +36,7 @@ class NotificationConstructor(
 
     private val deviceStatusCallback: ((deviceId: String, status: DeviceStatus) -> Unit) = { deviceId, status ->
         userStateRepository.findAllBySelectedDevice(deviceId).forEach {
-            bot.sendQueue.add(SendMessage(it.userId.toString(), buildChangedDeviceStatusText(status)))
+            bot.send(SendMessage(it.userId.toString(), buildChangedDeviceStatusText(status)))
         }
     }
 
@@ -47,14 +47,14 @@ class NotificationConstructor(
     private val alarmCallback: ((deviceId: String) -> Unit) = { deviceId ->
         deviceUserAssignmentRepository.findById(deviceId).getOrNull()?.users?.forEach { chatId ->
             deviceRepository.findByUserIdAndDeviceId(chatId.toLong(), deviceId)?.toDeviceDto()?.name?.let {
-                bot.sendQueue.add(SendMessage(chatId, buildAlarmText(it)))
+                bot.send(SendMessage(chatId, buildAlarmText(it)))
             }
         }
     }
 
     private val changedParamsCallback: ((deviceId: String, params: List<Param>) -> Unit) = { deviceId, params ->
         userStateRepository.findAllBySelectedDevice(deviceId).forEach {
-            bot.sendQueue.add(SendMessage(it.userId.toString(), buildChangedParamsText(params)))
+            bot.send(SendMessage(it.userId.toString(), buildChangedParamsText(params)))
         }
     }
 
