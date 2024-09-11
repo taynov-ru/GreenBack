@@ -13,7 +13,6 @@ env:
 
 jobs:
   build_jar:
-    if: "0"
     runs-on: arc-runner-set
     steps:
       - uses: actions/checkout@v4
@@ -32,8 +31,8 @@ jobs:
 
   build-docker:
     runs-on: arc-runner-set # uses self-hosted runner scale set
-#    needs:
-#      - build_jar
+    needs:
+      - build_jar
     container:
       image: gcr.io/kaniko-project/executor:v1.20.0-debug # the kaniko image
     env:
