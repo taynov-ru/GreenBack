@@ -47,11 +47,11 @@ jobs:
       - uses: docker/metadata-action@v3
         id: metadata
         with:
-          images: $GH_REGISTRY/${{ github.repository }}
+          images: ${{ env.GH_REGISTRY }}/${{ github.repository }}
 
       - uses: docker/login-action@v1
         with:
-          registry: "$GH_REGISTRY"
+          registry: ${{ env.GH_REGISTRY }}
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASS }}
       - uses: int128/kaniko-action@v1
