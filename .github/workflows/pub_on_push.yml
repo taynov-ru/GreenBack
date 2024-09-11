@@ -33,8 +33,6 @@ jobs:
     runs-on: arc-runner-set # uses self-hosted runner scale set
     needs:
       - build_jar
-    container:
-      image: gcr.io/kaniko-project/executor:v1.20.0-debug # the kaniko image
     env:
       GH_REGISTRY: "https://index.docker.io/v1"
       IMAGE_NAME: "${{ github.repository }}/greenback"
