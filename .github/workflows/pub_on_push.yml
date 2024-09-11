@@ -33,8 +33,6 @@ jobs:
     runs-on: arc-runner-set # uses self-hosted runner scale set
     needs:
       - build_jar
-    container:
-      image: gcr.io/kaniko-project/executor:v1.20.0-debug # the kaniko image
     env:
       GH_REGISTRY: "https://index.docker.io/v1"
       IMAGE_NAME: "${{ github.repository }}/greenback"
@@ -44,36 +42,17 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Install Node.js
-        run: |
-          curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-          sudo apt-get install -y nodejs
-      - name: Check Node version
-        run: node -v
-
+      - uses: actions/checkout@v3
       - uses: actions/download-artifact@v4
         with:
           name: Package
       - name: Prepare image name
         run: |
           echo "image=$GH_REGISTRY/$IMAGE_NAME:$(echo ${GITHUB_SHA} | head  -c 7)" >> $GITHUB_ENV
-      - name: Build and Push Image with kaniko
-        env:
-          DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
-          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
-        run: |
-          cat <<EOF > /kaniko/.docker/config.json
-          {
-            "auths": {
-              "$GH_REGISTRY": {
-                "auth": "$(echo -n "$DOCKER_LOGIN:$DOCKER_PASS" | base64 -w0)"
-              }
-            }
-          }
-          EOF
-          
-          /kaniko/executor --dockerfile="./Dockerfile" \
-            --context="${{ github.repositoryUrl }}#${{ github.ref }}#${{ github.sha }}"  \
-            --destination="$${{ env.image }}" \
-            ${{ env.KANIKO_CACHE_ARGS }} \
-            --push-retry 5
+      - name: Kaniko build
+        uses: aevea/action-kaniko@master
+        with:
+          image: ${{ env.image }}
+          username: ${{ secrets.DOCKER_LOGIN }}
+          password: ${{ secrets.DOCKER_PASS }}
+          cache: true
