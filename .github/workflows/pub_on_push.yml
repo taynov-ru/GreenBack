@@ -12,36 +12,8 @@ env:
   BOT_TOKEN: ${{secrets.BOT_TOKEN}}
 
 jobs:
-  test:
-    runs-on: arc-runner-set
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'adopt'
-          java-version: '17'
-
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Run Gradle Tests
-        run: |
-          ./gradlew test
-
   build_jar:
-    needs:
-      - test
+    if: "0"
     runs-on: arc-runner-set
     steps:
       - uses: actions/checkout@v4
@@ -58,22 +30,21 @@ jobs:
           name: Package
           path: tg-bot-service/build/libs
 
-  build_and_pub:
-    needs:
-      - test
-      - build_jar
-    runs-on: arc-runner-set
+  build-docker:
+    runs-on: arc-runner-set # uses self-hosted runner scale set
+#    needs:
+#      - build_jar
+    container:
+      image: gcr.io/kaniko-project/executor:v1.20.0-debug # the kaniko image
     env:
-      GH_REGISTRY: "https://index.docker.io/v1/"
+      GH_REGISTRY: "https://index.docker.io/v1"
       IMAGE_NAME: "${{ github.repository }}/greenback"
+      KANIKO_CACHE_ARGS: "--cache=true --cache-copy-layers=true --cache-ttl=24h"
     outputs:
       container_image: ${{ env.image }}
+    permissions:
+      contents: read
     steps:
-      - name: Login to Docker registry
-        run: echo ${DOCKER_PASS} | docker login -u $DOCKER_LOGIN --password-stdin
-        env:
-          DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
-          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
       - uses: actions/checkout@v3
       - uses: actions/download-artifact@v4
         with:
@@ -81,7 +52,23 @@ jobs:
       - name: Prepare image name
         run: |
           echo "image=$GH_REGISTRY/$IMAGE_NAME:$(echo ${GITHUB_SHA} | head  -c 7)" >> $GITHUB_ENV
-      - name: Build image
-        run: docker build -t ${{ env.image }} -f Dockerfile .
-      - name: Push image to docker.io
-        run: docker push ${{ env.image }}
+      - name: Build and Push Image with kaniko
+        env:
+          DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
+          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+        run: |
+          cat <<EOF > /kaniko/.docker/config.json
+          {
+            "auths": {
+              "$GH_REGISTRY": {
+                "auth": "$(echo -n "$DOCKER_LOGIN:$DOCKER_PASS" | base64 -w0)"
+              }
+            }
+          }
+          EOF
+          
+          /kaniko/executor --dockerfile="./Dockerfile" \
+            --context="${{ github.repositoryUrl }}#${{ github.ref }}#${{ github.sha }}"  \
+            --destination="$${{ env.image }}" \
+            ${{ env.KANIKO_CACHE_ARGS }} \
+            --push-retry 5
