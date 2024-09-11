@@ -40,6 +40,8 @@ jobs:
           ./gradlew test
 
   build_jar:
+    needs:
+      - test
     runs-on: arc-runner-set
     steps:
       - uses: actions/checkout@v4
