@@ -1,0 +1,42 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../base
+
+namespace: green-back
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+- behavior: create
+  literals:
+  - INGRESS_ENDPOINT=green-back.test-k8s.taynov.ru
+  name: green-back-env-config
+
+secretGenerator:
+- envs:
+  - .env
+  name: green-back-secret
+
+replacements:
+- source:
+    fieldPath: data.INGRESS_ENDPOINT
+    kind: ConfigMap
+    name: green-back-env-config
+  targets:
+  - fieldPaths:
+    - spec.tls.0.hosts.0
+    select:
+      kind: Ingress
+      name: green-back-app
+  - fieldPaths:
+    - spec.rules.0.host
+    select:
+      kind: Ingress
+      name: green-back-app
+labels:
+- includeSelectors: true
+  pairs:
+    env: development
