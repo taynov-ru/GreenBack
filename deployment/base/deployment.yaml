@@ -26,5 +26,12 @@ spec:
           ports:
             - containerPort: 5005
               protocol: TCP
+          volumeMounts:
+            - name: h2-storage
+              mountPath: "/app/db"
+      volumes:
+        - name: h2-storage
+          persistentVolumeClaim:
+            claimName: h2-pvc
       restartPolicy: Always
       
