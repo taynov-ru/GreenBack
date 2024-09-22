@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
 - ../../base
 
-namespace: green-back-test
+namespace: green-back-prod
 
 generatorOptions:
   disableNameSuffixHash: true
@@ -12,7 +12,7 @@ generatorOptions:
 configMapGenerator:
 - behavior: create
   literals:
-  - INGRESS_ENDPOINT=green-back-test.test-k8s.taynov.ru
+  - INGRESS_ENDPOINT=green-back.test-k8s.taynov.ru
   name: green-back-env-config
 
 secretGenerator:
@@ -35,4 +35,4 @@ replacements:
 labels:
 - includeSelectors: true
   pairs:
-    env: development
+    env: production
