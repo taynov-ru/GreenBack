@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: green-back-app
+  namespace: green-back
+  labels:
+    app: green-back-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: green-back-app
+  template:
+    metadata:
+      name: green-back-app
+      labels:
+        app: green-back-app
+    spec:
+      containers:
+        - name: green-back-app
+          image: ctrlww/greenback-tg-bot:main
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: green-back-secret
+          ports:
+            - containerPort: 5005
+              protocol: TCP
+          volumeMounts:
+            - name: h2-storage
+              mountPath: "/app/db"
+      volumes:
+        - name: h2-storage
+          persistentVolumeClaim:
+            claimName: h2-pvc
+      restartPolicy: Always
+      
