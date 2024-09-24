@@ -31,8 +31,6 @@ jobs:
 
   build-docker:
     runs-on: arc-runner-set # uses self-hosted runner scale set
-    container:
-      image: gcr.io/kaniko-project/executor:v1.20.0-debug # the kaniko image
     needs:
       - build_jar
     env:
@@ -46,24 +44,40 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: docker/metadata-action@v3
-        id: metadata
+      - uses: actions/download-artifact@v4
         with:
-          images: ${{ env.GH_REGISTRY }}/${{ github.repository }}
+          name: Package
+          path: tg-bot-service/build/libs
 
-      - uses: docker/login-action@v1
+      # - uses: docker/metadata-action@v3
+      #   id: metadata
+      #   with:
+      #     images: ${{ env.GH_REGISTRY }}/${{ github.repository }}
+          
+      - name: Kaniko build
+        uses: aevea/action-kaniko@master
         with:
-          registry: ${{ env.GH_REGISTRY }}
+          image: ${{ github.repository }}/greenback
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASS }}
+          registry: index.docker.io
+          tag: latest
+          dockerfile: Dockerfile
+          extra_args: "--cache=true"
+          
+      # - uses: docker/login-action@v1
+      #   with:
+      #     registry: ${{ env.GH_REGISTRY }}
+      #     username: ${{ secrets.DOCKER_LOGIN }}
+      #     password: ${{ secrets.DOCKER_PASS }}
         
-      - uses: int128/kaniko-action@v1
-        with:
-          push: true
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
-          cache: true
-          cache-repository: ghcr.io/${{ github.repository }}/cache
+      # - uses: int128/kaniko-action@v1
+      #   with:
+      #     push: true
+      #     tags: ${{ steps.metadata.outputs.tags }}
+      #     labels: ${{ steps.metadata.outputs.labels }}
+      #     cache: true
+      #     cache-repository: ghcr.io/${{ github.repository }}/cache
 #    steps:
 #      - uses: actions/checkout@v3
 #      - uses: actions/download-artifact@v4
