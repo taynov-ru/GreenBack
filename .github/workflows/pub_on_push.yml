@@ -58,7 +58,7 @@ jobs:
       - name: Kaniko build
         uses: aevea/action-kaniko@master
         with:
-          image: ${{ github.repository }}/greenback
+          image: ctrlww/greenback
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASS }}
           
