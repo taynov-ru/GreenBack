@@ -30,7 +30,8 @@ jobs:
           path: tg-bot-service/build/libs
 
   build-docker:
-    runs-on: arc-runner-set # uses self-hosted runner scale set
+    # runs-on: arc-runner-set # uses self-hosted runner scale set
+    runs-on: ubuntu-latest
     needs:
       - build_jar
     env:
@@ -60,10 +61,6 @@ jobs:
           image: ${{ github.repository }}/greenback
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASS }}
-          registry: index.docker.io
-          tag: latest
-          dockerfile: Dockerfile
-          extra_args: "--cache=true"
           
       # - uses: docker/login-action@v1
       #   with:
