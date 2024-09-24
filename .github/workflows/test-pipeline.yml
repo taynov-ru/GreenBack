@@ -35,7 +35,7 @@ jobs:
       - build_jar
     env:
       GH_REGISTRY: "docker.io"
-      IMAGE_NAME: "${{ github.repository }}/greenback"
+      IMAGE_NAME: "ctrlww/greenback"
       KANIKO_CACHE_ARGS: "--cache=true --cache-copy-layers=true --cache-ttl=24h"
     outputs:
       container_image: ${{ env.image }}
@@ -47,7 +47,7 @@ jobs:
       - uses: docker/metadata-action@v3
         id: metadata
         with:
-          images: ${{ env.GH_REGISTRY }}/${{ github.repository }}
+          images: ${{ env.GH_REGISTRY }}/ctrlww
 
       - uses: docker/login-action@v1
         with:
