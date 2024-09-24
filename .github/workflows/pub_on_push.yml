@@ -31,6 +31,8 @@ jobs:
 
   build-docker:
     runs-on: arc-runner-set # uses self-hosted runner scale set
+    container:
+      image: gcr.io/kaniko-project/executor:v1.20.0-debug # the kaniko image
     needs:
       - build_jar
     env:
