@@ -54,9 +54,6 @@ jobs:
           registry: ${{ env.GH_REGISTRY }}
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASS }}
-          
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
         
       - uses: int128/kaniko-action@v1
         with:
