@@ -30,8 +30,8 @@ jobs:
           path: tg-bot-service/build/libs
 
   build-docker:
-    # runs-on: arc-runner-set # uses self-hosted runner scale set
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-set # uses self-hosted runner scale set
+#    runs-on: ubuntu-latest
     needs:
       - build_jar
     env:
