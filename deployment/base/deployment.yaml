@@ -33,5 +33,7 @@ spec:
         - name: h2-storage
           persistentVolumeClaim:
             claimName: h2-pvc
+      imagePullSecrets:
+        - name: hubdocker
       restartPolicy: Always
       

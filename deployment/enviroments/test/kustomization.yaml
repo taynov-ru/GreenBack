@@ -16,9 +16,14 @@ configMapGenerator:
   name: green-back-env-config
 
 secretGenerator:
-- envs:
-  - .env
-  name: green-back-secret
+  - name: hubdocker
+    type: kubernetes.io/dockerconfigjson
+    files:
+      - .dockerconfigjson=credentials.json
+  - name: green-back-secret
+    envs:
+      - .env
+
 
 replacements:
 - source:
