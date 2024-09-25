@@ -41,11 +41,14 @@ jobs:
         with:
           name: Package
           path: .
+      - name: Prepare image name
+        run: |
+           echo "image=ctrlww/greenback:$(echo ${GITHUB_SHA} | head -c 7)" >> $GITHUB_ENV
 
       - name: Kaniko build
         uses: aevea/action-kaniko@master
         with:
-          image: ctrlww/greenback:$(echo ${GITHUB_SHA} | head  -c 7)
+          image: ${{ env.image }}
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASS }}
           
@@ -59,6 +62,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare image name
+        run: |
+          echo "image=ctrlww/greenback:$(echo ${GITHUB_SHA} | head -c 7)" >> $GITHUB_ENV
 
       - name: Prepare env
         run: |
@@ -78,7 +85,7 @@ jobs:
           EOF
           
           cd deployment/environments/test
-          kustomize edit set image green-back-app="ctrlww/greenback:$(echo ${GITHUB_SHA} | head  -c 7)"
+          kustomize edit set image green-back-app="${{ env.image }}"
           kustomize build .
           cd -
       - name: Diff
