@@ -55,8 +55,8 @@ jobs:
   deploy-test:
     runs-on: arc-runner-set
     environment: Test
-    needs:
-      - build-docker
+#    needs:
+#      - build-docker
     container:
       image: alpine/k8s:1.31.0
     steps:
