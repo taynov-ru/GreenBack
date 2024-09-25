@@ -2,6 +2,15 @@ name: Publish on Docker Hub and Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose environment to deploy'
+        required: true
+        default: 'test'
+        type: choice
+        options:
+          - test
+          - production
   push:
     branches:
       - 'main'
@@ -51,6 +60,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
           
   deploy-test:
+    if: ${{ github.event_name == 'push' || github.event.inputs.environment == 'test' }}
     runs-on: arc-runner-set
     environment: Test
     needs:
@@ -96,3 +106,51 @@ jobs:
         run: |
           kubectl apply -k deployment/environments/test
           kubectl rollout status deployment -n green-back-test --timeout=600s
+
+  deploy-production:
+    if: ${{ github.event.inputs.environment == 'production' }}
+    runs-on: arc-runner-set
+    environment: Production
+    needs:
+      - build-docker
+    container:
+      image: alpine/k8s:1.31.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare image name
+        run: |
+          echo "image=ctrlww/greenback:$(echo ${GITHUB_SHA} | head -c 7)" >> $GITHUB_ENV
+
+      - name: Prepare env
+        run: |
+          cat <<EOF > deployment/environments/production/.env
+          BOT_ADMIN=${{ secrets.BOT_ADMIN }}
+          BOT_TOKEN=${{ secrets.BOT_TOKEN_PROD }}
+          EOF
+          
+          cat <<EOF > deployment/environments/production/credentials.json
+          {
+            "auths": {
+              "${{ env.GH_REGISTRY }}": {
+                "auth": "$(echo -n "${{ secrets.DOCKER_LOGIN }}:${{ secrets.DOCKER_TOKEN }}" | base64 -w0)"
+              }
+            }
+          }
+          EOF
+          
+          cd deployment/environments/production
+          kustomize edit set image green-back-app="${{ env.image }}"
+          kustomize build .
+          cd -
+      - name: Diff
+        continue-on-error: true
+        run: |
+          kubectl diff -k deployment/environments/production
+          kubectl rollout status deployment -n green-back-prod --timeout=600s
+
+      - name: Deploy
+        run: |
+          kubectl apply -k deployment/environments/production
+          kubectl rollout status deployment -n green-back-prod --timeout=600s
