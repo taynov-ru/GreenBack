@@ -8,6 +8,7 @@ on:
 
 jobs:
   build_jar:
+    if: '0'
     runs-on: arc-runner-set
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +26,7 @@ jobs:
           path: tg-bot-service/build/libs
 
   build-docker:
+    if: '0'
 #    runs-on: arc-runner-set # uses self-hosted runner scale set
     runs-on: ubuntu-latest
     needs:
@@ -63,7 +65,9 @@ jobs:
 
       - name: Prepare image name
         run: |
-          echo "image=ctrlww/greenback:$(echo ${GITHUB_SHA} | head -c 7)" >> $GITHUB_ENV
+          echo "image=ctrlww/greenback:6f67f61" >> $GITHUB_ENV
+#        run: |
+#          echo "image=ctrlww/greenback:$(echo ${GITHUB_SHA} | head -c 7)" >> $GITHUB_ENV
 
       - name: Prepare env
         run: |
