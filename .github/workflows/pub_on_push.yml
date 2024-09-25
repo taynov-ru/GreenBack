@@ -71,6 +71,9 @@ jobs:
 
       - name: Prepare env
         run: |
+          ls
+          cd /
+          ls
           cat <<EOF > deployment/environments/test/.env
           BOT_ADMIN=${{ secrets.BOT_ADMIN }}
           BOT_TOKEN=${{ secrets.BOT_TOKEN_TEST }}
