@@ -125,12 +125,12 @@ jobs:
 
       - name: Prepare env
         run: |
-          cat <<EOF > deployment/environments/production/.env
+          cat <<EOF > deployment/environments/prod/.env
           BOT_ADMIN=${{ secrets.BOT_ADMIN }}
           BOT_TOKEN=${{ secrets.BOT_TOKEN_PROD }}
           EOF
           
-          cat <<EOF > deployment/environments/production/credentials.json
+          cat <<EOF > deployment/environments/prod/credentials.json
           {
             "auths": {
               "${{ env.GH_REGISTRY }}": {
@@ -140,7 +140,7 @@ jobs:
           }
           EOF
           
-          cd deployment/environments/production
+          cd deployment/environments/prod
           kustomize edit set image green-back-app="${{ env.image }}"
           kustomize build .
           cd -
