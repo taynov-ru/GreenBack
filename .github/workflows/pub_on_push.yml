@@ -41,14 +41,12 @@ jobs:
         with:
           name: Package
           path: .
-      - name: Prepare image name
-        run: |
-           echo "image=ctrlww/greenback:$(echo ${GITHUB_SHA} | head -c 7)" >> $GITHUB_ENV
 
       - name: Kaniko build
         uses: aevea/action-kaniko@master
         with:
-          image: ${{ env.image }}
+          image: ctrlww/greenback
+          tag: $(echo ${GITHUB_SHA} | head -c 7)
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASS }}
           
