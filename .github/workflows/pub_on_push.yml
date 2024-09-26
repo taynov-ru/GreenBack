@@ -93,7 +93,7 @@ jobs:
           EOF
           
           cd deployment/environments/test
-          kustomize edit set image green-back-app="${{ env.image }}"
+          kustomize edit set image green-back-image="${{ env.image }}"
           kustomize build .
           cd -
       - name: Diff
@@ -141,7 +141,7 @@ jobs:
           EOF
           
           cd deployment/environments/prod
-          kustomize edit set image green-back-app="${{ env.image }}"
+          kustomize edit set image green-back-image="${{ env.image }}"
           kustomize build .
           cd -
       - name: Diff

@@ -2,8 +2,6 @@ package ru.taynov.esp.service
 
 import mu.KLogger
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Lazy
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.stereotype.Service
 import ru.taynov.esp.dto.SetParamsResponse

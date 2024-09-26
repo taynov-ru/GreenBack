@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: green-back-app
-          image: ctrlww/greenback-tg-bot:main
+          image: green-back-image
           imagePullPolicy: IfNotPresent
           envFrom:
             - secretRef:
