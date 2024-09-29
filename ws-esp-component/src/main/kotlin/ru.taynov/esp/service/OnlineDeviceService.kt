@@ -22,7 +22,12 @@ class OnlineDeviceService(
 
     fun setOnline(deviceId: String) {
         val messageWasRecently = secondsFromLastInteraction(deviceId).let { it != 0L && it < THRESHOLD }
-        if (messageWasRecently.not() && onlineDevices.add(deviceId)) {
+        if (messageWasRecently && !onlineDevices.contains(deviceId)) {
+            onlineDevices.add(deviceId)
+            return
+        }
+        if (messageWasRecently.not()) {
+            onlineDevices.add(deviceId)
             log.info("Connected deviceId: $deviceId")
             espInteractionService.invokeDeviceStatusCallback(deviceId, DeviceStatus.ONLINE)
         }
