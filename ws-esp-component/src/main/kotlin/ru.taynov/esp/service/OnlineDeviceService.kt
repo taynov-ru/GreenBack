@@ -21,14 +21,15 @@ class OnlineDeviceService(
     }
 
     fun setOnline(deviceId: String) {
-        val messageWasRecently = secondsFromLastInteraction(deviceId).let { it != 0L && it < THRESHOLD }
+        val secondsPast = secondsFromLastInteraction(deviceId);
+        val messageWasRecently = secondsPast.let { it != 0L && it < THRESHOLD }
         if (messageWasRecently && !onlineDevices.contains(deviceId)) {
             onlineDevices.add(deviceId)
             return
         }
         if (messageWasRecently.not()) {
             onlineDevices.add(deviceId)
-            log.info("Connected deviceId: $deviceId")
+            log.info("Connected deviceId: $deviceId. Seconds from last message: $secondsPast")
             espInteractionService.invokeDeviceStatusCallback(deviceId, DeviceStatus.ONLINE)
         }
     }
@@ -41,7 +42,7 @@ class OnlineDeviceService(
             val seconds = secondsFromLastInteraction(deviceId)
             if (seconds >= THRESHOLD) {
                 forCleanup.add(deviceId)
-                log.info("Disconnected deviceId: $deviceId")
+                log.info("Disconnected deviceId: $deviceId. Seconds from last message $seconds")
                 espInteractionService.invokeDeviceStatusCallback(deviceId, DeviceStatus.OFFLINE)
             }
         }
