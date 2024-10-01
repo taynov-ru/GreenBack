@@ -22,7 +22,7 @@ class OnlineDeviceService(
 
     fun setOnline(deviceId: String) {
         val secondsPast = secondsFromLastInteraction(deviceId);
-        val messageWasRecently = secondsPast.let { it != 0L && it < THRESHOLD }
+        val messageWasRecently = secondsPast.let { it == 0L || it < THRESHOLD }
         if (messageWasRecently && !onlineDevices.contains(deviceId)) {
             onlineDevices.add(deviceId)
             return
