@@ -33,6 +33,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
+    runtimeOnly ("org.postgresql:postgresql:42.7.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 

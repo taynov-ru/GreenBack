@@ -77,9 +77,14 @@ jobs:
 
       - name: Prepare env
         run: |
+          cp -r config/* deployment/environments/test/
+          
           cat <<EOF > deployment/environments/test/.env
           BOT_ADMIN=${{ secrets.BOT_ADMIN }}
           BOT_TOKEN=${{ secrets.BOT_TOKEN_TEST }}
+          PG_HOST=jdbc:postgresql://postgres-db.green-back.svc.cluster.local:5432/gbtst
+          PG_USER=${{ secrets.PG_USER }}
+          PG_PASSWORD=${{ secrets.PG_PASSWORD }}
           EOF
           
           cat <<EOF > deployment/environments/test/credentials.json
@@ -125,9 +130,14 @@ jobs:
 
       - name: Prepare env
         run: |
+          cp -r config/* deployment/environments/prod/
+          
           cat <<EOF > deployment/environments/prod/.env
           BOT_ADMIN=${{ secrets.BOT_ADMIN }}
           BOT_TOKEN=${{ secrets.BOT_TOKEN_PROD }}
+          PG_HOST=jdbc:postgresql://postgres-db.green-back.svc.cluster.local:5432/gb
+          PG_USER=${{ secrets.PG_USER }}
+          PG_PASSWORD=${{ secrets.PG_PASSWORD }}
           EOF
           
           cat <<EOF > deployment/environments/prod/credentials.json
