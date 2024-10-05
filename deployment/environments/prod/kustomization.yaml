@@ -15,6 +15,11 @@ configMapGenerator:
   - INGRESS_ENDPOINT=green-back.test-k8s.taynov.ru
   name: green-back-env-config
 
+- behavior: create
+  name: green-back-app-config
+  files:
+    - application.yaml
+
 secretGenerator:
 - envs:
   - .env

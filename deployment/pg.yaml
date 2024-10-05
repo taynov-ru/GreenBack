@@ -1,0 +1,20 @@
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: postgres-db
+spec:
+  teamId: "taynov.ru"
+  volume:
+    size: 100Mi
+    storageClass: local-path
+  enableMasterLoadBalancer: true
+  numberOfInstances: 2
+  users:
+    gb:
+      - superuser
+  databases:
+    gbtst: gb
+    gb: gb
+
+  postgresql:
+    version: "15"

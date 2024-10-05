@@ -27,12 +27,12 @@ spec:
             - containerPort: 5005
               protocol: TCP
           volumeMounts:
-            - name: h2-storage
-              mountPath: "/app/db"
+            - name: spring-application-config
+              mountPath: /app/config
       volumes:
-        - name: h2-storage
-          persistentVolumeClaim:
-            claimName: h2-pvc
+        - name: spring-application-config
+          configMap:
+            name: green-back-app-config
       imagePullSecrets:
         - name: hubdocker
       restartPolicy: Always

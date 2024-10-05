@@ -1,48 +1,25 @@
 #!/bin/bash
 
-# Функция для включения перенаправления
-enable_redirect() {
-    # Проверка, существует ли правило
-    sudo iptables -t nat -C PREROUTING -p tcp -d "$OLD_IP" --dport "$OLD_PORT" -j DNAT --to-destination "$NEW_IP":"$NEW_PORT" 2>/dev/null
-    if [ $? -ne 0 ]; then
-        sudo iptables -t nat -A PREROUTING -p tcp -d "$OLD_IP" --dport "$OLD_PORT" -j DNAT --to-destination "$NEW_IP":"$NEW_PORT"
-        sudo iptables -t nat -A POSTROUTING -j MASQUERADE
-        echo "Перенаправление включено с $OLD_IP:$OLD_PORT на $NEW_IP:$NEW_PORT"
-    else
-        echo "Правило уже существует"
-    fi
-}
-
-# Функция для отключения перенаправления
-disable_redirect() {
-    # Проверка, существует ли правило
-    sudo iptables -t nat -C PREROUTING -p tcp -d "$OLD_IP" --dport "$OLD_PORT" -j DNAT --to-destination "$NEW_IP":"$NEW_PORT" 2>/dev/null
-    if [ $? -eq 0 ]; then
-        sudo iptables -t nat -D PREROUTING -p tcp -d "$OLD_IP" --dport "$OLD_PORT" -j DNAT --to-destination "$NEW_IP":"$NEW_PORT"
-        sudo iptables -t nat -D POSTROUTING -j MASQUERADE
-        echo "Перенаправление отключено с $OLD_IP:$OLD_PORT на $NEW_IP:$NEW_PORT"
-    else
-        echo "Правило не найдено"
-    fi
-}
-
 # Проверка аргументов
-if [ "$#" -ne 5 ]; then
-    echo "Usage: $0 {enable|disable} <OLD_IP> <OLD_PORT> <NEW_IP> <NEW_PORT>"
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 {enable|disable} {test|prod}"
+
     exit 1
 fi
 
 ACTION=$1
-OLD_IP=$2
-OLD_PORT=$3
-NEW_IP=$4
-NEW_PORT=$5
+ENVIRONMENT=$2
+
 
 if [ "$ACTION" == "enable" ]; then
-    enable_redirect
+  kubectl patch ingress green-back-app -n green-back-"$ENVIRONMENT" --type='json' -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/name", "value":"forward-to-me-service"}]'
 elif [ "$ACTION" == "disable" ]; then
-    disable_redirect
+  kubectl patch ingress green-back-app -n green-back-"$ENVIRONMENT" --type='json' -p='[{"op": "replace", "path": "/spec/rules/0/http/paths/0/backend/service/name", "value":"green-back-app"}]'
 else
-    echo "Usage: $0 {enable|disable} <OLD_IP> <OLD_PORT> <NEW_IP> <NEW_PORT>"
+    echo "Usage: $0 {enable|disable} {test|prod}"
     exit 1
 fi
+
+# chmode +x ws_redirect.sh
+#./ws_redirect.sh disable test
+#./ws_redirect.sh enable test

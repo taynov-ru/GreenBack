@@ -1,0 +1,26 @@
+server:
+  port: 5005
+spring:
+  application:
+    name: share
+
+  jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  datasource:
+    url: ${PG_HOST:jdbc:postgresql://localhost:5432/postgres}
+    username: ${PG_USER:postgres}
+    password: ${PG_PASSWORD:badjoke23}
+
+bot:
+  name: ${BOT_NAME}
+  token: ${BOT_TOKEN}
+  admin_id: ${BOT_ADMIN}
+
+notification:
+  alarm: true
+  changed-parameter: false
+  device-status: true
