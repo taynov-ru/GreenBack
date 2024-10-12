@@ -15,9 +15,7 @@ class IncomingMessageLogger(
 ) {
 
     fun log(message: Any) {
-        logger.info("-------------------------BEGIN incoming device message-------------------------")
-        logger.info(objectMapper.writeValueAsString(message))
-        logger.info("-------------------------END incoming device message-------------------------")
+        logger.info("New message from device: ${objectMapper.writeValueAsString(message)}")
     }
 
 }

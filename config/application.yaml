@@ -2,7 +2,7 @@ server:
   port: 5005
 spring:
   application:
-    name: share
+    name: GreenBack
 
   jpa:
     database: postgresql

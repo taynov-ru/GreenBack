@@ -29,7 +29,6 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:2.0.11")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("com.h2database:h2:2.1.214")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.hibernate.validator:hibernate-validator:7.0.2.Final")
 
