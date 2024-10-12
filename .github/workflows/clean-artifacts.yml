@@ -1,0 +1,15 @@
+name: clean artifacts
+permissions: write-all
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */2 * * *'
+
+jobs:
+  clean:
+    runs-on: arc-runner-set
+    steps:
+      - name: cleanup
+        uses: glassechidna/artifact-cleaner@master
+        with:
+          minimumAge: 7200 # all artifacts at least two hours old
