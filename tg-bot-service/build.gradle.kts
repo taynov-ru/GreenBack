@@ -20,7 +20,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
-    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
+    implementation("net.logstash.logback:logstash-logback-encoder:6.6")
 
     implementation("io.github.microutils:kotlin-logging-jvm:2.0.11")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
