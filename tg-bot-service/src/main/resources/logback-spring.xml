@@ -1,39 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
-    <springProperty scope="context" name="ACTIVE_PROFILE" source="spring.profiles.active"/>
-    <springProperty scope="context" name="APP_NAME" source="spring.application.name"/>
 
-    <appender name="jsonstdout" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-            <providers>
-                <globalCustomFields>
-                    <customFields>{"env":"${ACTIVE_PROFILE}", "system":"${APP_NAME}", "inst":"${HOSTNAME}"}
-                    </customFields>
-                </globalCustomFields>
-                <timestamp>
-                    <fieldName>timestamp</fieldName>
-                    <pattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</pattern>
-                </timestamp>
-                <mdc/>
-                <logLevel/>
-                <loggerName/>
-                <threadName/>
-                <message/>
-                <logstashMarkers/>
-                <stackTrace/>
-            </providers>
-        </encoder>
+    <appender name="Console"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %yellow(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1}) [%X]: %msg%n%throwable{5}
+            </Pattern>
+        </layout>
     </appender>
 
+    <!-- LOG everything at INFO level -->
     <root level="info">
-        <springProfile name="local">
-            <appender-ref ref="CONSOLE"/>
-        </springProfile>
-        <springProfile name="!local">
-            <appender-ref ref="jsonstdout"/>
-        </springProfile>
+        <appender-ref ref="Console" />
     </root>
-</configuration>
 
+</configuration>
