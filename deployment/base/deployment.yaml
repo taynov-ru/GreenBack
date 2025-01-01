@@ -29,6 +29,13 @@ spec:
           volumeMounts:
             - name: spring-application-config
               mountPath: /app/config
+          resources:
+            requests:
+              memory: "400Mi"
+              cpu: "400m"
+            limits:
+              memory: "600Mi"
+              cpu: "500m"
       volumes:
         - name: spring-application-config
           configMap:
